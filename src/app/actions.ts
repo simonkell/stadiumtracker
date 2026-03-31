@@ -1,8 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/utils";
+import { loginWithPassword, logoutAdmin, requireAdminAccess } from "@/lib/auth";
 import {
   importWikipediaStadiumList,
   removeIrrelevantStadiums,
@@ -23,6 +25,8 @@ async function createUniqueSlug(name: string) {
 }
 
 export async function createStadium(formData: FormData) {
+  await requireAdminAccess();
+
   const name = formData.get("name")?.toString().trim();
   const city = formData.get("city")?.toString().trim();
   const country = formData.get("country")?.toString().trim();
@@ -55,6 +59,8 @@ export async function createStadium(formData: FormData) {
 }
 
 export async function addCapacityPeriod(formData: FormData) {
+  await requireAdminAccess();
+
   const stadiumId = Number(formData.get("stadiumId"));
   const capacity = Number(formData.get("capacity"));
 
@@ -80,6 +86,8 @@ export async function addCapacityPeriod(formData: FormData) {
 }
 
 export async function addVisit(formData: FormData) {
+  await requireAdminAccess();
+
   const stadiumId = Number(formData.get("stadiumId"));
   const visitedOn = formData.get("visitedOn")?.toString().trim();
   const eventName = formData.get("eventName")?.toString().trim();
@@ -101,12 +109,26 @@ export async function addVisit(formData: FormData) {
 }
 
 export async function importStadiumsFromWikipedia() {
+  await requireAdminAccess();
   await importWikipediaStadiumList();
   revalidatePath("/");
 }
 
 export async function repairWikipediaImportData() {
+  await requireAdminAccess();
   await repairInvalidWikipediaCapacities();
   await removeIrrelevantStadiums();
   revalidatePath("/");
+}
+
+export async function unlockAdminAccess(formData: FormData) {
+  const password = formData.get("password")?.toString() ?? "";
+  const success = await loginWithPassword(password);
+
+  redirect(success ? "/" : "/?auth=failed");
+}
+
+export async function lockAdminAccess() {
+  await logoutAdmin();
+  redirect("/");
 }

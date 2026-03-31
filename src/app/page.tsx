@@ -4,16 +4,53 @@ import {
   addVisit,
   createStadium,
   importStadiumsFromWikipedia,
+  lockAdminAccess,
   repairWikipediaImportData,
+  unlockAdminAccess,
 } from "@/app/actions";
 import { StatCard } from "@/components/stat-card";
+import { isAdminAuthenticated } from "@/lib/auth";
 import { getDashboardData } from "@/lib/dashboard";
 import { formatDate, formatNumber } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-export default async function Home() {
+type HomeProps = {
+  searchParams?: Promise<{
+    auth?: string;
+  }>;
+};
+
+function AdminCard({
+  title,
+  description,
+  icon,
+  children,
+}: {
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <article className="rounded-[30px] border border-slate-200/80 bg-white/90 p-6 shadow-[0_20px_50px_-40px_rgba(0,34,68,0.4)]">
+      <div className="flex items-center gap-3">
+        {icon}
+        <div>
+          <h2 className="text-xl font-semibold">{title}</h2>
+          <p className="text-sm text-slate-600">{description}</p>
+        </div>
+      </div>
+      <div className="mt-6">{children}</div>
+    </article>
+  );
+}
+
+export default async function Home({ searchParams }: HomeProps) {
   const { stats, stadiums, visitOptions } = await getDashboardData();
+  const isAdmin = await isAdminAuthenticated();
+  const resolvedSearchParams = await searchParams;
+  const authFailed = resolvedSearchParams?.auth === "failed";
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(31,157,85,0.18),_transparent_30%),radial-gradient(circle_at_top_right,_rgba(0,34,68,0.18),_transparent_32%),linear-gradient(180deg,_#f8fbfb_0%,_#edf3f1_48%,_#e3ece8_100%)] px-5 py-8 text-slate-950 md:px-8 md:py-10">
@@ -65,7 +102,7 @@ export default async function Home() {
           <StatCard
             label="Besuchte Stadien"
             value={formatNumber(stats.visitedStadiums)}
-            hint="Gezahlt werden Stadien mit mindestens einem hinterlegten Besuch."
+            hint="Gezählt werden Stadien mit mindestens einem hinterlegten Besuch."
             accent="field"
           />
           <StatCard
@@ -83,221 +120,270 @@ export default async function Home() {
         </section>
 
         <section className="rounded-[30px] border border-slate-200/80 bg-white/90 p-5 shadow-[0_20px_50px_-40px_rgba(0,34,68,0.4)] md:p-6">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <h2 className="text-xl font-semibold">Wikipedia-Basisimport</h2>
+              <h2 className="text-xl font-semibold">Schreibschutz</h2>
               <p className="mt-1 text-sm leading-6 text-slate-600">
-                Importiert alle Stadien aus der Liste „List of stadiums by capacity“ und
-                aktualisiert vorhandene Einträge anhand von Name, Stadt und Land. Stadien
-                unter 60.000 Plätzen werden automatisch ignoriert oder bereinigt.
+                Stadionliste und Statistiken sind öffentlich sichtbar. Änderungen an der
+                Datenbank sind nur nach Passwort-Freischaltung möglich.
               </p>
             </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <form action={repairWikipediaImportData}>
-                <button className="button-primary button-secondary" type="submit">
-                  Fehlerhafte Wikipedia-Werte bereinigen
-                </button>
-              </form>
-
-              <form action={importStadiumsFromWikipedia}>
+            {isAdmin ? (
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <div className="rounded-full bg-emerald-100 px-4 py-2 text-sm font-semibold text-emerald-800">
+                  Admin-Zugriff aktiv
+                </div>
+                <form action={lockAdminAccess}>
+                  <button className="button-primary button-secondary" type="submit">
+                    Schutz wieder aktivieren
+                  </button>
+                </form>
+              </div>
+            ) : (
+              <form action={unlockAdminAccess} className="flex w-full max-w-xl flex-col gap-3 sm:flex-row">
+                <div className="flex-1">
+                  <label className="sr-only" htmlFor="password">
+                    Admin-Passwort
+                  </label>
+                  <input
+                    className="input"
+                    id="password"
+                    name="password"
+                    type="password"
+                    placeholder="Passwort für Änderungen eingeben"
+                    required
+                  />
+                  {authFailed ? (
+                    <p className="mt-2 text-sm text-rose-700">Das Passwort war nicht korrekt.</p>
+                  ) : null}
+                </div>
                 <button className="button-primary" type="submit">
-                  Alle Stadien von Wikipedia importieren
+                  Bearbeiten entsperren
                 </button>
               </form>
-            </div>
+            )}
           </div>
         </section>
 
-        <section className="grid gap-6 xl:grid-cols-[1.05fr_1.25fr]">
-          <div className="grid gap-6">
-            <article className="rounded-[30px] border border-slate-200/80 bg-white/90 p-6 shadow-[0_20px_50px_-40px_rgba(0,34,68,0.4)]">
-              <div className="flex items-center gap-3">
-                <div className="rounded-2xl bg-slate-100 p-3 text-slate-800">
-                  <Landmark className="h-5 w-5" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-semibold">Stadion anlegen</h2>
-                  <p className="text-sm text-slate-600">
-                    Grunddaten inklusive Koordinaten für die spätere Kartenansicht.
-                  </p>
-                </div>
-              </div>
+        <section className="grid gap-6 xl:grid-cols-[1.05fr_1.25fr] xl:items-start">
+          <div className="grid h-fit gap-6 self-start">
+            {isAdmin ? (
+              <>
+                <section className="rounded-[30px] border border-slate-200/80 bg-white/90 p-5 shadow-[0_20px_50px_-40px_rgba(0,34,68,0.4)] md:p-6">
+                  <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <h2 className="text-xl font-semibold">Wikipedia-Basisimport</h2>
+                      <p className="mt-1 text-sm leading-6 text-slate-600">
+                        Importiert alle Stadien aus der Liste „List of stadiums by capacity“
+                        und aktualisiert vorhandene Einträge anhand von Name, Stadt und Land.
+                        Stadien unter 60.000 Plätzen werden automatisch ignoriert oder
+                        bereinigt.
+                      </p>
+                    </div>
 
-              <form action={createStadium} className="mt-6 grid gap-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <label className="grid gap-2">
-                    <span className="text-sm font-medium text-slate-700">Name</span>
-                    <input className="input" name="name" required />
-                  </label>
-                  <label className="grid gap-2">
-                    <span className="text-sm font-medium text-slate-700">Land</span>
-                    <input className="input" name="country" required />
-                  </label>
-                </div>
+                    <div className="flex flex-col gap-3 sm:flex-row">
+                      <form action={repairWikipediaImportData}>
+                        <button className="button-primary button-secondary" type="submit">
+                          Fehlerhafte Wikipedia-Werte bereinigen
+                        </button>
+                      </form>
 
-                <div className="grid gap-4 md:grid-cols-2">
-                  <label className="grid gap-2">
-                    <span className="text-sm font-medium text-slate-700">Stadt</span>
-                    <input className="input" name="city" required />
-                  </label>
-                  <label className="grid gap-2">
-                    <span className="text-sm font-medium text-slate-700">Kontinent</span>
-                    <input className="input" name="continent" />
-                  </label>
-                </div>
+                      <form action={importStadiumsFromWikipedia}>
+                        <button className="button-primary" type="submit">
+                          Alle Stadien von Wikipedia importieren
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                </section>
 
-                <div className="grid gap-4 md:grid-cols-3">
-                  <label className="grid gap-2">
-                    <span className="text-sm font-medium text-slate-700">Eröffnet</span>
-                    <input className="input" name="openedYear" type="number" min="1800" />
-                  </label>
-                  <label className="grid gap-2">
-                    <span className="text-sm font-medium text-slate-700">Breitengrad</span>
-                    <input className="input" name="latitude" type="number" step="0.000001" />
-                  </label>
-                  <label className="grid gap-2">
-                    <span className="text-sm font-medium text-slate-700">Längengrad</span>
-                    <input className="input" name="longitude" type="number" step="0.000001" />
-                  </label>
-                </div>
+                <AdminCard
+                  title="Stadion anlegen"
+                  description="Grunddaten inklusive Koordinaten für die spätere Kartenansicht."
+                  icon={
+                    <div className="rounded-2xl bg-slate-100 p-3 text-slate-800">
+                      <Landmark className="h-5 w-5" />
+                    </div>
+                  }
+                >
+                  <form action={createStadium} className="grid gap-4">
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <label className="grid gap-2">
+                        <span className="text-sm font-medium text-slate-700">Name</span>
+                        <input className="input" name="name" required />
+                      </label>
+                      <label className="grid gap-2">
+                        <span className="text-sm font-medium text-slate-700">Land</span>
+                        <input className="input" name="country" required />
+                      </label>
+                    </div>
 
-                <label className="grid gap-2">
-                  <span className="text-sm font-medium text-slate-700">Primärer Nutzer / Club</span>
-                  <input className="input" name="primaryTenant" />
-                </label>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <label className="grid gap-2">
+                        <span className="text-sm font-medium text-slate-700">Stadt</span>
+                        <input className="input" name="city" required />
+                      </label>
+                      <label className="grid gap-2">
+                        <span className="text-sm font-medium text-slate-700">Kontinent</span>
+                        <input className="input" name="continent" />
+                      </label>
+                    </div>
 
-                <label className="grid gap-2">
-                  <span className="text-sm font-medium text-slate-700">Notizen</span>
-                  <textarea className="textarea" name="notes" rows={4} />
-                </label>
+                    <div className="grid gap-4 md:grid-cols-3">
+                      <label className="grid gap-2">
+                        <span className="text-sm font-medium text-slate-700">Eröffnet</span>
+                        <input className="input" name="openedYear" type="number" min="1800" />
+                      </label>
+                      <label className="grid gap-2">
+                        <span className="text-sm font-medium text-slate-700">Breitengrad</span>
+                        <input className="input" name="latitude" type="number" step="0.000001" />
+                      </label>
+                      <label className="grid gap-2">
+                        <span className="text-sm font-medium text-slate-700">Längengrad</span>
+                        <input className="input" name="longitude" type="number" step="0.000001" />
+                      </label>
+                    </div>
 
-                <button className="button-primary" type="submit">
-                  Stadion speichern
-                </button>
-              </form>
-            </article>
+                    <label className="grid gap-2">
+                      <span className="text-sm font-medium text-slate-700">Primärer Nutzer / Club</span>
+                      <input className="input" name="primaryTenant" />
+                    </label>
 
-            <article className="rounded-[30px] border border-slate-200/80 bg-white/90 p-6 shadow-[0_20px_50px_-40px_rgba(0,34,68,0.4)]">
-              <div className="flex items-center gap-3">
-                <div className="rounded-2xl bg-emerald-100 p-3 text-emerald-800">
-                  <MapPinned className="h-5 w-5" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-semibold">Kapazitätshistorie pflegen</h2>
-                  <p className="text-sm text-slate-600">
-                    Jede Änderung wird als Zeitraum gespeichert und später für Rankings genutzt.
-                  </p>
-                </div>
-              </div>
+                    <label className="grid gap-2">
+                      <span className="text-sm font-medium text-slate-700">Notizen</span>
+                      <textarea className="textarea" name="notes" rows={4} />
+                    </label>
 
-              <form action={addCapacityPeriod} className="mt-6 grid gap-4">
-                <label className="grid gap-2">
-                  <span className="text-sm font-medium text-slate-700">Stadion</span>
-                  <select className="input" name="stadiumId" required defaultValue="">
-                    <option value="" disabled>
-                      Stadion wählen
-                    </option>
-                    {visitOptions.map((stadium) => (
-                      <option key={stadium.id} value={stadium.id}>
-                        {stadium.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                    <button className="button-primary" type="submit">
+                      Stadion speichern
+                    </button>
+                  </form>
+                </AdminCard>
 
-                <div className="grid gap-4 md:grid-cols-3">
-                  <label className="grid gap-2">
-                    <span className="text-sm font-medium text-slate-700">Kapazität</span>
-                    <input className="input" name="capacity" type="number" min="1" required />
-                  </label>
-                  <label className="grid gap-2">
-                    <span className="text-sm font-medium text-slate-700">Gültig ab</span>
-                    <input className="input" name="validFrom" type="date" />
-                  </label>
-                  <label className="grid gap-2">
-                    <span className="text-sm font-medium text-slate-700">Gültig bis</span>
-                    <input className="input" name="validTo" type="date" />
-                  </label>
-                </div>
+                <AdminCard
+                  title="Kapazitätshistorie pflegen"
+                  description="Jede Änderung wird als Zeitraum gespeichert und später für Rankings genutzt."
+                  icon={
+                    <div className="rounded-2xl bg-emerald-100 p-3 text-emerald-800">
+                      <MapPinned className="h-5 w-5" />
+                    </div>
+                  }
+                >
+                  <form action={addCapacityPeriod} className="grid gap-4">
+                    <label className="grid gap-2">
+                      <span className="text-sm font-medium text-slate-700">Stadion</span>
+                      <select className="input" name="stadiumId" required defaultValue="">
+                        <option value="" disabled>
+                          Stadion wählen
+                        </option>
+                        {visitOptions.map((stadium) => (
+                          <option key={stadium.id} value={stadium.id}>
+                            {stadium.name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
 
-                <label className="grid gap-2">
-                  <span className="text-sm font-medium text-slate-700">Quelle</span>
-                  <input
-                    className="input"
-                    name="source"
-                    placeholder="z. B. offizieller Stadionguide oder Wikipedia"
-                  />
-                </label>
+                    <div className="grid gap-4 md:grid-cols-3">
+                      <label className="grid gap-2">
+                        <span className="text-sm font-medium text-slate-700">Kapazität</span>
+                        <input className="input" name="capacity" type="number" min="1" required />
+                      </label>
+                      <label className="grid gap-2">
+                        <span className="text-sm font-medium text-slate-700">Gültig ab</span>
+                        <input className="input" name="validFrom" type="date" />
+                      </label>
+                      <label className="grid gap-2">
+                        <span className="text-sm font-medium text-slate-700">Gültig bis</span>
+                        <input className="input" name="validTo" type="date" />
+                      </label>
+                    </div>
 
-                <label className="grid gap-2">
-                  <span className="text-sm font-medium text-slate-700">Kommentar</span>
-                  <textarea className="textarea" name="note" rows={3} />
-                </label>
+                    <label className="grid gap-2">
+                      <span className="text-sm font-medium text-slate-700">Quelle</span>
+                      <input
+                        className="input"
+                        name="source"
+                        placeholder="z. B. offizieller Stadionguide oder Wikipedia"
+                      />
+                    </label>
 
-                <button className="button-primary button-secondary" type="submit">
-                  Kapazität hinterlegen
-                </button>
-              </form>
-            </article>
+                    <label className="grid gap-2">
+                      <span className="text-sm font-medium text-slate-700">Kommentar</span>
+                      <textarea className="textarea" name="note" rows={3} />
+                    </label>
 
-            <article className="rounded-[30px] border border-slate-200/80 bg-white/90 p-6 shadow-[0_20px_50px_-40px_rgba(0,34,68,0.4)]">
-              <div className="flex items-center gap-3">
-                <div className="rounded-2xl bg-sky-100 p-3 text-sky-800">
-                  <NotebookPen className="h-5 w-5" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-semibold">Besuch eintragen</h2>
-                  <p className="text-sm text-slate-600">
-                    Markiere ein Stadion als besucht und notiere dir Event, Datum und Erinnerung.
-                  </p>
-                </div>
-              </div>
+                    <button className="button-primary button-secondary" type="submit">
+                      Kapazität hinterlegen
+                    </button>
+                  </form>
+                </AdminCard>
 
-              <form action={addVisit} className="mt-6 grid gap-4">
-                <label className="grid gap-2">
-                  <span className="text-sm font-medium text-slate-700">Stadion</span>
-                  <select className="input" name="stadiumId" required defaultValue="">
-                    <option value="" disabled>
-                      Stadion wählen
-                    </option>
-                    {visitOptions.map((stadium) => (
-                      <option key={stadium.id} value={stadium.id}>
-                        {stadium.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                <AdminCard
+                  title="Besuch eintragen"
+                  description="Markiere ein Stadion als besucht und notiere dir Event, Datum und Erinnerung."
+                  icon={
+                    <div className="rounded-2xl bg-sky-100 p-3 text-sky-800">
+                      <NotebookPen className="h-5 w-5" />
+                    </div>
+                  }
+                >
+                  <form action={addVisit} className="grid gap-4">
+                    <label className="grid gap-2">
+                      <span className="text-sm font-medium text-slate-700">Stadion</span>
+                      <select className="input" name="stadiumId" required defaultValue="">
+                        <option value="" disabled>
+                          Stadion wählen
+                        </option>
+                        {visitOptions.map((stadium) => (
+                          <option key={stadium.id} value={stadium.id}>
+                            {stadium.name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
 
-                <div className="grid gap-4 md:grid-cols-2">
-                  <label className="grid gap-2">
-                    <span className="text-sm font-medium text-slate-700">Besuchsdatum</span>
-                    <input className="input" name="visitedOn" type="date" required />
-                  </label>
-                  <label className="grid gap-2">
-                    <span className="text-sm font-medium text-slate-700">Event</span>
-                    <input
-                      className="input"
-                      name="eventName"
-                      placeholder="z. B. Champions League Finale"
-                      required
-                    />
-                  </label>
-                </div>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <label className="grid gap-2">
+                        <span className="text-sm font-medium text-slate-700">Besuchsdatum</span>
+                        <input className="input" name="visitedOn" type="date" required />
+                      </label>
+                      <label className="grid gap-2">
+                        <span className="text-sm font-medium text-slate-700">Event</span>
+                        <input
+                          className="input"
+                          name="eventName"
+                          placeholder="z. B. Champions League Finale"
+                          required
+                        />
+                      </label>
+                    </div>
 
-                <label className="grid gap-2">
-                  <span className="text-sm font-medium text-slate-700">Notiz</span>
-                  <textarea className="textarea" name="note" rows={4} />
-                </label>
+                    <label className="grid gap-2">
+                      <span className="text-sm font-medium text-slate-700">Notiz</span>
+                      <textarea className="textarea" name="note" rows={4} />
+                    </label>
 
-                <button className="button-primary button-dark" type="submit">
-                  Besuch speichern
-                </button>
-              </form>
-            </article>
+                    <button className="button-primary button-dark" type="submit">
+                      Besuch speichern
+                    </button>
+                  </form>
+                </AdminCard>
+              </>
+            ) : (
+              <section className="self-start rounded-[30px] border border-dashed border-slate-300 bg-white/85 p-6 shadow-[0_20px_50px_-40px_rgba(0,34,68,0.22)]">
+                <h2 className="text-xl font-semibold">Bearbeitungsbereich geschützt</h2>
+                <p className="mt-3 text-sm leading-7 text-slate-600">
+                  Die Formulare für Import, neue Stadien, Kapazitäten und Besuche sind im
+                  öffentlichen Betrieb geschützt. Gib oben das Passwort ein, wenn du Änderungen
+                  an der Datenbank vornehmen möchtest.
+                </p>
+              </section>
+            )}
           </div>
 
-          <section className="rounded-[30px] border border-slate-200/80 bg-white/90 p-6 shadow-[0_20px_50px_-40px_rgba(0,34,68,0.4)]">
+          <section className="self-start rounded-[30px] border border-slate-200/80 bg-white/90 p-6 shadow-[0_20px_50px_-40px_rgba(0,34,68,0.4)]">
             <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
               <div>
                 <h2 className="text-2xl font-semibold">Stadien und Besuchsstatus</h2>

@@ -26,6 +26,13 @@ npm run dev
 
 Die App laeuft dann unter [http://localhost:3000](http://localhost:3000).
 
+Fuer geschuetzte Schreibzugriffe setze zusaetzlich:
+
+```bash
+ADMIN_PASSWORD=dein-passwort
+AUTH_SECRET=ein-langer-zufaelliger-wert
+```
+
 ## Docker starten
 
 ```bash
