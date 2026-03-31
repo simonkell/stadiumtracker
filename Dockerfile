@@ -17,8 +17,9 @@ ENV PORT=3000
 WORKDIR /app
 
 COPY --from=builder /app ./
+RUN apk add --no-cache sqlite
 RUN mkdir -p /app/data
 
 EXPOSE 3000
 
-CMD ["sh", "-c", "npx prisma db push || npm run db:init; npm run start"]
+CMD ["sh", "-c", "npx prisma db push || npm run db:init; if [ ! -s /app/data/stadiumtracker.db ]; then npm run db:seed; fi; npm run start"]

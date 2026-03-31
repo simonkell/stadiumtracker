@@ -9,9 +9,9 @@
     "lint": "eslint",
     "postinstall": "prisma generate",
     "db:push": "prisma db push",
-    "db:init": "sqlite3 prisma/dev.db < scripts/init-db.sql",
+    "db:init": "sh scripts/init-db.sh",
     "db:migrate": "prisma migrate dev",
-    "db:seed": "sqlite3 prisma/dev.db < scripts/seed-db.sql",
+    "db:seed": "sh scripts/seed-db.sh",
     "db:setup": "npm run db:init && npm run db:seed"
   },
   "dependencies": {

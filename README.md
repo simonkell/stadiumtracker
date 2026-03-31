@@ -29,8 +29,17 @@ Die App laeuft dann unter [http://localhost:3000](http://localhost:3000).
 ## Docker starten
 
 ```bash
-docker compose up --build -d
+docker compose up -d
 ```
 
 Die SQLite-Datenbank liegt im Volume `stadiumtracker_data`.
-Fuer Tools mit eingeschraenktem Docker-Build-Support nutzt die Compose-Datei bewusst direkt ein `node:22-alpine`-Image statt eines lokalen Dockerfile-Builds.
+
+## GHCR Deployment
+
+Pushes auf `main` bauen automatisch ein Docker-Image und pushen es nach `ghcr.io/simonkell/stadiumtracker:latest`.
+
+Fuer Arcane brauchst du dann nur noch:
+
+- Zugriff auf `ghcr.io`
+- einen Token mit `read:packages`, falls das Paket privat ist
+- die mitgelieferte `compose.yaml`, die direkt das GHCR-Image verwendet
