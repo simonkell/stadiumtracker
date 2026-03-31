@@ -6,6 +6,7 @@ const WIKIPEDIA_LIST_URL =
   "https://en.wikipedia.org/wiki/List_of_stadiums_by_capacity";
 const CAPACITY_SOURCE = "Wikipedia: List of stadiums by capacity";
 const MAX_REASONABLE_CAPACITY = 500000;
+const MIN_RELEVANT_CAPACITY = 60000;
 
 type WikipediaStadium = {
   name: string;
@@ -108,6 +109,10 @@ function parseWikipediaStadiums(html: string): WikipediaStadium[] {
       articleUrl,
     };
 
+    if (stadium.capacity < MIN_RELEVANT_CAPACITY) {
+      return;
+    }
+
     stadiums.set(`${name}::${city}::${country}`, stadium);
   });
 
@@ -129,6 +134,7 @@ async function createUniqueImportedSlug(name: string, city: string, country: str
 
 export async function importWikipediaStadiumList() {
   await repairInvalidWikipediaCapacities();
+  await removeIrrelevantStadiums();
 
   const response = await fetch(WIKIPEDIA_LIST_URL, {
     headers: {
@@ -239,6 +245,21 @@ export async function repairInvalidWikipediaCapacities() {
     DELETE FROM "StadiumCapacityPeriod"
     WHERE "source" = '${CAPACITY_SOURCE}'
       AND "capacity" > ${MAX_REASONABLE_CAPACITY}
+  `);
+
+  return Number(deletedRows);
+}
+
+export async function removeIrrelevantStadiums() {
+  const deletedRows = await prisma.$executeRawUnsafe(`
+    DELETE FROM "Stadium"
+    WHERE id IN (
+      SELECT s.id
+      FROM "Stadium" s
+      LEFT JOIN "StadiumCapacityPeriod" scp ON scp."stadiumId" = s.id
+      GROUP BY s.id
+      HAVING COALESCE(MAX(scp."capacity"), 0) < ${MIN_RELEVANT_CAPACITY}
+    )
   `);
 
   return Number(deletedRows);

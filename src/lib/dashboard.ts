@@ -1,6 +1,9 @@
 import type { Stadium, StadiumCapacityPeriod, Visit } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { repairInvalidWikipediaCapacities } from "@/lib/wikipedia-import";
+import {
+  removeIrrelevantStadiums,
+  repairInvalidWikipediaCapacities,
+} from "@/lib/wikipedia-import";
 
 type StadiumWithRelations = Stadium & {
   capacityPeriods: StadiumCapacityPeriod[];
@@ -75,6 +78,7 @@ function sortByCurrentCapacity(stadiums: StadiumWithRelations[]) {
 
 export async function getDashboardData(): Promise<DashboardData> {
   await repairInvalidWikipediaCapacities();
+  await removeIrrelevantStadiums();
 
   const stadiums = await prisma.stadium.findMany({
     include: {

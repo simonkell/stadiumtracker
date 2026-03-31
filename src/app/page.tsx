@@ -88,7 +88,8 @@ export default async function Home() {
               <h2 className="text-xl font-semibold">Wikipedia-Basisimport</h2>
               <p className="mt-1 text-sm leading-6 text-slate-600">
                 Importiert alle Stadien aus der Liste „List of stadiums by capacity“ und
-                aktualisiert vorhandene Einträge anhand von Name, Stadt und Land.
+                aktualisiert vorhandene Einträge anhand von Name, Stadt und Land. Stadien
+                unter 60.000 Plätzen werden automatisch ignoriert oder bereinigt.
               </p>
             </div>
 

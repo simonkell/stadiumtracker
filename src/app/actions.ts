@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/utils";
 import {
   importWikipediaStadiumList,
+  removeIrrelevantStadiums,
   repairInvalidWikipediaCapacities,
 } from "@/lib/wikipedia-import";
 
@@ -106,5 +107,6 @@ export async function importStadiumsFromWikipedia() {
 
 export async function repairWikipediaImportData() {
   await repairInvalidWikipediaCapacities();
+  await removeIrrelevantStadiums();
   revalidatePath("/");
 }
