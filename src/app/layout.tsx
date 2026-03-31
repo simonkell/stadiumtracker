@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Stadium Tracker",
   description:
-    "Tracke Stadionbesuche, historische Kapazitaeten und deinen Fortschritt bei den groessten Stadien der Welt.",
+    "Tracke Stadionbesuche, historische Kapazitäten und deinen Fortschritt bei den größten Stadien der Welt.",
 };
 
 export default function RootLayout({

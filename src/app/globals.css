@@ -1,10 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ebe7dc;
-  --foreground: #0f172a;
-  --card: rgba(255, 255, 255, 0.82);
-  --border: rgba(148, 163, 184, 0.3);
+  --background: #eef3f1;
+  --foreground: #0b1f33;
+  --card: rgba(255, 255, 255, 0.9);
+  --border: rgba(11, 31, 51, 0.12);
+  --team-navy: #002244;
+  --team-blue: #0a3d62;
+  --team-green: #1f9d55;
+  --team-green-dark: #117a43;
+  --team-silver: #d7dde4;
+  --team-white: #ffffff;
 }
 
 @theme inline {
@@ -45,10 +51,10 @@ textarea {
 .textarea {
   width: 100%;
   border-radius: 18px;
-  border: 1px solid rgba(148, 163, 184, 0.4);
-  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(10, 61, 98, 0.18);
+  background: rgba(255, 255, 255, 0.95);
   padding: 0.9rem 1rem;
-  color: #0f172a;
+  color: var(--team-navy);
   outline: none;
   transition:
     border-color 120ms ease,
@@ -58,8 +64,8 @@ textarea {
 
 .input:focus,
 .textarea:focus {
-  border-color: rgba(249, 115, 22, 0.55);
-  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.12);
+  border-color: rgba(31, 157, 85, 0.65);
+  box-shadow: 0 0 0 4px rgba(31, 157, 85, 0.16);
 }
 
 .textarea {
@@ -73,7 +79,7 @@ textarea {
   justify-content: center;
   border: 0;
   border-radius: 999px;
-  background: linear-gradient(135deg, #ea580c, #f97316);
+  background: linear-gradient(135deg, var(--team-green-dark), var(--team-green));
   padding: 0.95rem 1.35rem;
   font-weight: 600;
   color: white;
@@ -82,7 +88,7 @@ textarea {
     transform 120ms ease,
     box-shadow 120ms ease,
     opacity 120ms ease;
-  box-shadow: 0 18px 30px -20px rgba(194, 65, 12, 0.8);
+  box-shadow: 0 18px 30px -20px rgba(17, 122, 67, 0.75);
 }
 
 .button-primary:hover {
@@ -94,11 +100,11 @@ textarea {
 }
 
 .button-secondary {
-  background: linear-gradient(135deg, #047857, #10b981);
-  box-shadow: 0 18px 30px -20px rgba(4, 120, 87, 0.85);
+  background: linear-gradient(135deg, #0a3d62, #002244);
+  box-shadow: 0 18px 30px -20px rgba(0, 34, 68, 0.8);
 }
 
 .button-dark {
-  background: linear-gradient(135deg, #0f172a, #334155);
-  box-shadow: 0 18px 30px -20px rgba(15, 23, 42, 0.8);
+  background: linear-gradient(135deg, #00152c, #0a3d62);
+  box-shadow: 0 18px 30px -20px rgba(0, 34, 68, 0.82);
 }

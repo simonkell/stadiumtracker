@@ -8,9 +8,9 @@ type StatCardProps = {
 };
 
 const accentClassNames: Record<NonNullable<StatCardProps["accent"]>, string> = {
-  sun: "border-amber-300/70 bg-amber-50 text-amber-950",
+  sun: "border-sky-300/70 bg-sky-50 text-sky-950",
   field: "border-emerald-300/70 bg-emerald-50 text-emerald-950",
-  ink: "border-slate-300/70 bg-slate-50 text-slate-950",
+  ink: "border-slate-300/70 bg-slate-100 text-slate-950",
 };
 
 export function StatCard({

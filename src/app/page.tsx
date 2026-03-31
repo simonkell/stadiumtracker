@@ -10,25 +10,25 @@ export default async function Home() {
   const { stats, stadiums, visitOptions } = await getDashboardData();
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(249,115,22,0.16),_transparent_35%),linear-gradient(180deg,_#f6f1e8_0%,_#f2efe7_50%,_#ebe7dc_100%)] px-5 py-8 text-slate-950 md:px-8 md:py-10">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(31,157,85,0.18),_transparent_30%),radial-gradient(circle_at_top_right,_rgba(0,34,68,0.18),_transparent_32%),linear-gradient(180deg,_#f8fbfb_0%,_#edf3f1_48%,_#e3ece8_100%)] px-5 py-8 text-slate-950 md:px-8 md:py-10">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
-        <section className="grid gap-6 rounded-[36px] border border-white/70 bg-white/80 p-7 shadow-[0_30px_80px_-45px_rgba(15,23,42,0.45)] backdrop-blur md:grid-cols-[1.7fr_1fr] md:p-10">
+        <section className="grid gap-6 rounded-[36px] border border-white/70 bg-white/88 p-7 shadow-[0_30px_80px_-45px_rgba(0,34,68,0.35)] backdrop-blur md:grid-cols-[1.7fr_1fr] md:p-10">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.32em] text-orange-700">
+            <p className="text-sm font-semibold uppercase tracking-[0.32em] text-emerald-700">
               Stadium Tracker
             </p>
             <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-tight text-slate-950 md:text-6xl">
-              Verfolge deine Stadionbesuche in den groessten Arenen der Welt.
+              Verfolge deine Stadionbesuche in den größten Arenen der Welt.
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-8 text-slate-700 md:text-lg">
-              Diese erste Version verwaltet Stadien, historische Kapazitaeten und
+              Diese erste Version verwaltet Stadien, historische Kapazitäten und
               Besuche inklusive Event und Notiz. Die wichtigste Kennzahl ist schon
-              integriert: Wie viele der aktuell groessten Stadien hast du besucht?
+              integriert: Wie viele der aktuell größten Stadien hast du besucht?
             </p>
           </div>
 
-          <div className="grid gap-4 rounded-[30px] bg-slate-950 p-6 text-slate-50">
-            <div className="flex items-center gap-3 text-sm uppercase tracking-[0.24em] text-amber-300">
+          <div className="grid gap-4 rounded-[30px] bg-[linear-gradient(145deg,_#002244,_#0a3d62)] p-6 text-slate-50">
+            <div className="flex items-center gap-3 text-sm uppercase tracking-[0.24em] text-emerald-300">
               <Trophy className="h-4 w-4" />
               Fokus-Statistik
             </div>
@@ -38,7 +38,7 @@ export default async function Home() {
             </p>
             <div className="mt-2 h-3 overflow-hidden rounded-full bg-white/10">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-amber-400 via-orange-400 to-emerald-400"
+                className="h-full rounded-full bg-gradient-to-r from-white via-emerald-300 to-sky-400"
                 style={{ width: `${stats.completionRate}%` }}
               />
             </div>
@@ -71,22 +71,22 @@ export default async function Home() {
           <StatCard
             label="Top-100-Quote"
             value={`${stats.completionRate}%`}
-            hint="Aktuell bezogen auf die gepflegten Stadien mit gueltiger Kapazitaet."
+            hint="Aktuell bezogen auf die gepflegten Stadien mit gültiger Kapazität."
             accent="field"
           />
         </section>
 
         <section className="grid gap-6 xl:grid-cols-[1.05fr_1.25fr]">
           <div className="grid gap-6">
-            <article className="rounded-[30px] border border-slate-200/80 bg-white/85 p-6 shadow-[0_20px_50px_-40px_rgba(15,23,42,0.45)]">
+            <article className="rounded-[30px] border border-slate-200/80 bg-white/90 p-6 shadow-[0_20px_50px_-40px_rgba(0,34,68,0.4)]">
               <div className="flex items-center gap-3">
-                <div className="rounded-2xl bg-orange-100 p-3 text-orange-700">
+                <div className="rounded-2xl bg-slate-100 p-3 text-slate-800">
                   <Landmark className="h-5 w-5" />
                 </div>
                 <div>
                   <h2 className="text-xl font-semibold">Stadion anlegen</h2>
                   <p className="text-sm text-slate-600">
-                    Grunddaten inklusive Koordinaten fuer die spaetere Kartenansicht.
+                    Grunddaten inklusive Koordinaten für die spätere Kartenansicht.
                   </p>
                 </div>
               </div>
@@ -116,7 +116,7 @@ export default async function Home() {
 
                 <div className="grid gap-4 md:grid-cols-3">
                   <label className="grid gap-2">
-                    <span className="text-sm font-medium text-slate-700">Eroeffnet</span>
+                    <span className="text-sm font-medium text-slate-700">Eröffnet</span>
                     <input className="input" name="openedYear" type="number" min="1800" />
                   </label>
                   <label className="grid gap-2">
@@ -124,13 +124,13 @@ export default async function Home() {
                     <input className="input" name="latitude" type="number" step="0.000001" />
                   </label>
                   <label className="grid gap-2">
-                    <span className="text-sm font-medium text-slate-700">Laengengrad</span>
+                    <span className="text-sm font-medium text-slate-700">Längengrad</span>
                     <input className="input" name="longitude" type="number" step="0.000001" />
                   </label>
                 </div>
 
                 <label className="grid gap-2">
-                  <span className="text-sm font-medium text-slate-700">Primaerer Nutzer / Club</span>
+                  <span className="text-sm font-medium text-slate-700">Primärer Nutzer / Club</span>
                   <input className="input" name="primaryTenant" />
                 </label>
 
@@ -145,15 +145,15 @@ export default async function Home() {
               </form>
             </article>
 
-            <article className="rounded-[30px] border border-slate-200/80 bg-white/85 p-6 shadow-[0_20px_50px_-40px_rgba(15,23,42,0.45)]">
+            <article className="rounded-[30px] border border-slate-200/80 bg-white/90 p-6 shadow-[0_20px_50px_-40px_rgba(0,34,68,0.4)]">
               <div className="flex items-center gap-3">
-                <div className="rounded-2xl bg-emerald-100 p-3 text-emerald-700">
+                <div className="rounded-2xl bg-emerald-100 p-3 text-emerald-800">
                   <MapPinned className="h-5 w-5" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold">Kapazitaetshistorie pflegen</h2>
+                  <h2 className="text-xl font-semibold">Kapazitätshistorie pflegen</h2>
                   <p className="text-sm text-slate-600">
-                    Jede Aenderung wird als Zeitraum gespeichert und spaeter fuer Rankings genutzt.
+                    Jede Änderung wird als Zeitraum gespeichert und später für Rankings genutzt.
                   </p>
                 </div>
               </div>
@@ -163,7 +163,7 @@ export default async function Home() {
                   <span className="text-sm font-medium text-slate-700">Stadion</span>
                   <select className="input" name="stadiumId" required defaultValue="">
                     <option value="" disabled>
-                      Stadion waehlen
+                      Stadion wählen
                     </option>
                     {visitOptions.map((stadium) => (
                       <option key={stadium.id} value={stadium.id}>
@@ -175,15 +175,15 @@ export default async function Home() {
 
                 <div className="grid gap-4 md:grid-cols-3">
                   <label className="grid gap-2">
-                    <span className="text-sm font-medium text-slate-700">Kapazitaet</span>
+                    <span className="text-sm font-medium text-slate-700">Kapazität</span>
                     <input className="input" name="capacity" type="number" min="1" required />
                   </label>
                   <label className="grid gap-2">
-                    <span className="text-sm font-medium text-slate-700">Gueltig ab</span>
+                    <span className="text-sm font-medium text-slate-700">Gültig ab</span>
                     <input className="input" name="validFrom" type="date" />
                   </label>
                   <label className="grid gap-2">
-                    <span className="text-sm font-medium text-slate-700">Gueltig bis</span>
+                    <span className="text-sm font-medium text-slate-700">Gültig bis</span>
                     <input className="input" name="validTo" type="date" />
                   </label>
                 </div>
@@ -203,14 +203,14 @@ export default async function Home() {
                 </label>
 
                 <button className="button-primary button-secondary" type="submit">
-                  Kapazitaet hinterlegen
+                  Kapazität hinterlegen
                 </button>
               </form>
             </article>
 
-            <article className="rounded-[30px] border border-slate-200/80 bg-white/85 p-6 shadow-[0_20px_50px_-40px_rgba(15,23,42,0.45)]">
+            <article className="rounded-[30px] border border-slate-200/80 bg-white/90 p-6 shadow-[0_20px_50px_-40px_rgba(0,34,68,0.4)]">
               <div className="flex items-center gap-3">
-                <div className="rounded-2xl bg-sky-100 p-3 text-sky-700">
+                <div className="rounded-2xl bg-sky-100 p-3 text-sky-800">
                   <NotebookPen className="h-5 w-5" />
                 </div>
                 <div>
@@ -226,7 +226,7 @@ export default async function Home() {
                   <span className="text-sm font-medium text-slate-700">Stadion</span>
                   <select className="input" name="stadiumId" required defaultValue="">
                     <option value="" disabled>
-                      Stadion waehlen
+                      Stadion wählen
                     </option>
                     {visitOptions.map((stadium) => (
                       <option key={stadium.id} value={stadium.id}>
@@ -264,25 +264,25 @@ export default async function Home() {
             </article>
           </div>
 
-          <section className="rounded-[30px] border border-slate-200/80 bg-white/85 p-6 shadow-[0_20px_50px_-40px_rgba(15,23,42,0.45)]">
+          <section className="rounded-[30px] border border-slate-200/80 bg-white/90 p-6 shadow-[0_20px_50px_-40px_rgba(0,34,68,0.4)]">
             <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
               <div>
                 <h2 className="text-2xl font-semibold">Stadien und Besuchsstatus</h2>
                 <p className="text-sm leading-6 text-slate-600">
-                  Gruen markierte Karten sind bereits besucht. Die Sortierung priorisiert die
-                  groessten aktuell erfassten Stadien.
+                  Grün markierte Karten sind bereits besucht. Die Sortierung priorisiert die
+                  größten aktuell erfassten Stadien.
                 </p>
               </div>
               <p className="text-sm font-medium uppercase tracking-[0.22em] text-slate-500">
-                {stadiums.length} Eintraege
+                {stadiums.length} Einträge
               </p>
             </div>
 
             <div className="mt-6 grid gap-4">
               {stadiums.length === 0 ? (
                 <div className="rounded-[24px] border border-dashed border-slate-300 bg-slate-50 p-8 text-sm leading-7 text-slate-600">
-                  Noch keine Stadien vorhanden. Lege zuerst ein Stadion an oder starte spaeter mit
-                  einem Import der groessten Arenen weltweit.
+                  Noch keine Stadien vorhanden. Lege zuerst ein Stadion an oder starte später mit
+                  einem Import der größten Arenen weltweit.
                 </div>
               ) : (
                 stadiums.map((stadium) => {
@@ -293,8 +293,8 @@ export default async function Home() {
                       key={stadium.id}
                       className={`rounded-[26px] border p-5 transition-colors ${
                         visited
-                          ? "border-emerald-300 bg-emerald-50/80"
-                          : "border-rose-200 bg-rose-50/70"
+                          ? "border-emerald-300 bg-emerald-50/85"
+                          : "border-slate-300 bg-slate-100/90"
                       }`}
                     >
                       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
@@ -310,7 +310,7 @@ export default async function Home() {
                               className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${
                                 visited
                                   ? "bg-emerald-600 text-white"
-                                  : "bg-rose-600 text-white"
+                                  : "bg-slate-700 text-white"
                               }`}
                             >
                               {visited ? "Besucht" : "Offen"}
@@ -318,7 +318,7 @@ export default async function Home() {
                           </div>
                           <p className="mt-2 text-sm leading-6 text-slate-700">
                             {stadium.city}, {stadium.country}
-                            {stadium.openedYear ? ` • eroefnet ${stadium.openedYear}` : ""}
+                            {stadium.openedYear ? ` • eröffnet ${stadium.openedYear}` : ""}
                             {stadium.primaryTenant ? ` • ${stadium.primaryTenant}` : ""}
                           </p>
                           {stadium.coordinates ? (
@@ -330,7 +330,7 @@ export default async function Home() {
 
                         <div className="min-w-[170px] rounded-[20px] bg-white/80 p-4 text-right shadow-sm">
                           <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
-                            Aktuelle Kapazitaet
+                            Aktuelle Kapazität
                           </p>
                           <p className="mt-2 text-2xl font-semibold">
                             {stadium.currentCapacity != null
