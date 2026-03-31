@@ -12,8 +12,24 @@ services:
       - stadiumtracker_data:/app/data
     command: >
       sh -c "
+      echo '=== ARCANE DEBUG: /app ===' &&
+      pwd &&
+      ls -la /app &&
+      echo '=== ARCANE DEBUG: key paths ===' &&
+      ls -ld /app/package.json /app/package-lock.json /app/Dockerfile /app/compose.yaml /app/docker-compose.yml /app/src /app/prisma /app/debug-marker.txt 2>/dev/null || true &&
+      echo '=== ARCANE DEBUG: root files ===' &&
+      find /app -maxdepth 1 -type f | sort &&
+      echo '=== ARCANE DEBUG: root dirs ===' &&
+      find /app -maxdepth 1 -type d | sort &&
       apk add --no-cache sqlite &&
-      if [ ! -d /app/node_modules/next ]; then npm ci; fi &&
+      if [ ! -f /app/package.json ]; then
+        echo 'package.json fehlt in /app - Arcane mountet den Projektinhalt nicht wie erwartet.' &&
+        ls -la /app &&
+        exit 1;
+      fi &&
+      if [ ! -d /app/node_modules/next ]; then
+        if [ -f /app/package-lock.json ]; then npm ci; else npm install; fi;
+      fi &&
       mkdir -p /app/data &&
       if [ ! -f /app/data/stadiumtracker.db ]; then
         sqlite3 /app/data/stadiumtracker.db < scripts/init-db.sql &&
