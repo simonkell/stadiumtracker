@@ -1,15 +1,29 @@
 services:
   app:
-    build:
-      context: .
-      dockerfile: ./Dockerfile
+    image: node:22-alpine
+    working_dir: /app
     ports:
       - "3000:3000"
     environment:
       DATABASE_URL: file:/app/data/stadiumtracker.db
     volumes:
+      - ./:/app
+      - stadiumtracker_node_modules:/app/node_modules
       - stadiumtracker_data:/app/data
+    command: >
+      sh -c "
+      apk add --no-cache sqlite &&
+      if [ ! -d /app/node_modules/next ]; then npm ci; fi &&
+      mkdir -p /app/data &&
+      if [ ! -f /app/data/stadiumtracker.db ]; then
+        sqlite3 /app/data/stadiumtracker.db < scripts/init-db.sql &&
+        sqlite3 /app/data/stadiumtracker.db < scripts/seed-db.sql;
+      fi &&
+      npm run build &&
+      npm run start
+      "
     restart: unless-stopped
 
 volumes:
+  stadiumtracker_node_modules:
   stadiumtracker_data:

@@ -33,3 +33,4 @@ docker compose up --build -d
 ```
 
 Die SQLite-Datenbank liegt im Volume `stadiumtracker_data`.
+Fuer Tools mit eingeschraenktem Docker-Build-Support nutzt die Compose-Datei bewusst direkt ein `node:22-alpine`-Image statt eines lokalen Dockerfile-Builds.
