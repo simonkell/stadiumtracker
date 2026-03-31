@@ -1,5 +1,10 @@
 import { Trophy, MapPinned, NotebookPen, Landmark } from "lucide-react";
-import { addCapacityPeriod, addVisit, createStadium } from "@/app/actions";
+import {
+  addCapacityPeriod,
+  addVisit,
+  createStadium,
+  importStadiumsFromWikipedia,
+} from "@/app/actions";
 import { StatCard } from "@/components/stat-card";
 import { getDashboardData } from "@/lib/dashboard";
 import { formatDate, formatNumber } from "@/lib/utils";
@@ -74,6 +79,24 @@ export default async function Home() {
             hint="Aktuell bezogen auf die gepflegten Stadien mit gültiger Kapazität."
             accent="field"
           />
+        </section>
+
+        <section className="rounded-[30px] border border-slate-200/80 bg-white/90 p-5 shadow-[0_20px_50px_-40px_rgba(0,34,68,0.4)] md:p-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h2 className="text-xl font-semibold">Wikipedia-Basisimport</h2>
+              <p className="mt-1 text-sm leading-6 text-slate-600">
+                Importiert alle Stadien aus der Liste „List of stadiums by capacity“ und
+                aktualisiert vorhandene Einträge anhand von Name, Stadt und Land.
+              </p>
+            </div>
+
+            <form action={importStadiumsFromWikipedia}>
+              <button className="button-primary" type="submit">
+                Alle Stadien von Wikipedia importieren
+              </button>
+            </form>
+          </div>
         </section>
 
         <section className="grid gap-6 xl:grid-cols-[1.05fr_1.25fr]">
