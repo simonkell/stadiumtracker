@@ -4,6 +4,7 @@ import {
   addVisit,
   createStadium,
   importStadiumsFromWikipedia,
+  repairWikipediaImportData,
 } from "@/app/actions";
 import { StatCard } from "@/components/stat-card";
 import { getDashboardData } from "@/lib/dashboard";
@@ -91,11 +92,19 @@ export default async function Home() {
               </p>
             </div>
 
-            <form action={importStadiumsFromWikipedia}>
-              <button className="button-primary" type="submit">
-                Alle Stadien von Wikipedia importieren
-              </button>
-            </form>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <form action={repairWikipediaImportData}>
+                <button className="button-primary button-secondary" type="submit">
+                  Fehlerhafte Wikipedia-Werte bereinigen
+                </button>
+              </form>
+
+              <form action={importStadiumsFromWikipedia}>
+                <button className="button-primary" type="submit">
+                  Alle Stadien von Wikipedia importieren
+                </button>
+              </form>
+            </div>
           </div>
         </section>
 

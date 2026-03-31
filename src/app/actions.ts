@@ -3,7 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/utils";
-import { importWikipediaStadiumList } from "@/lib/wikipedia-import";
+import {
+  importWikipediaStadiumList,
+  repairInvalidWikipediaCapacities,
+} from "@/lib/wikipedia-import";
 
 async function createUniqueSlug(name: string) {
   const baseSlug = slugify(name) || "stadium";
@@ -98,5 +101,10 @@ export async function addVisit(formData: FormData) {
 
 export async function importStadiumsFromWikipedia() {
   await importWikipediaStadiumList();
+  revalidatePath("/");
+}
+
+export async function repairWikipediaImportData() {
+  await repairInvalidWikipediaCapacities();
   revalidatePath("/");
 }

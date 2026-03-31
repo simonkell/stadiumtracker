@@ -5,6 +5,7 @@ import { slugify } from "@/lib/utils";
 const WIKIPEDIA_LIST_URL =
   "https://en.wikipedia.org/wiki/List_of_stadiums_by_capacity";
 const CAPACITY_SOURCE = "Wikipedia: List of stadiums by capacity";
+const MAX_REASONABLE_CAPACITY = 500000;
 
 type WikipediaStadium = {
   name: string;
@@ -32,8 +33,21 @@ function extractListText(rawText: string) {
 }
 
 function parseCapacity(rawText: string) {
-  const digits = rawText.replace(/[^\d]/g, "");
-  return digits ? Number(digits) : null;
+  const cleaned = cleanText(rawText);
+  const match = cleaned.match(/\d[\d,.\s]*/);
+
+  if (!match) {
+    return null;
+  }
+
+  const digits = match[0].replace(/[^\d]/g, "");
+  const capacity = digits ? Number(digits) : null;
+
+  if (!capacity || capacity > MAX_REASONABLE_CAPACITY) {
+    return null;
+  }
+
+  return capacity;
 }
 
 function buildImportNote({
@@ -114,6 +128,8 @@ async function createUniqueImportedSlug(name: string, city: string, country: str
 }
 
 export async function importWikipediaStadiumList() {
+  await repairInvalidWikipediaCapacities();
+
   const response = await fetch(WIKIPEDIA_LIST_URL, {
     headers: {
       "User-Agent": "stadiumtracker/1.0 (Wikipedia import for personal stadium tracking)",
@@ -216,4 +232,14 @@ export async function importWikipediaStadiumList() {
     capacitiesCreated,
     capacitiesUpdated,
   };
+}
+
+export async function repairInvalidWikipediaCapacities() {
+  const deletedRows = await prisma.$executeRawUnsafe(`
+    DELETE FROM "StadiumCapacityPeriod"
+    WHERE "source" = '${CAPACITY_SOURCE}'
+      AND "capacity" > ${MAX_REASONABLE_CAPACITY}
+  `);
+
+  return Number(deletedRows);
 }
