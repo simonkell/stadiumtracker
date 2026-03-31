@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Stadium {
+  id              Int                     @id @default(autoincrement())
+  slug            String                  @unique
+  name            String
+  city            String
+  country         String
+  continent       String?
+  latitude        Float?
+  longitude       Float?
+  openedYear      Int?
+  demolishedYear  Int?
+  primaryTenant   String?
+  notes           String?
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+  capacityPeriods StadiumCapacityPeriod[]
+  visits          Visit[]
+
+  @@index([country, city])
+  @@index([name])
+}
+
+model StadiumCapacityPeriod {
+  id         Int       @id @default(autoincrement())
+  stadiumId  Int
+  capacity   Int
+  validFrom  DateTime?
+  validTo    DateTime?
+  source     String?
+  note       String?
+  createdAt  DateTime  @default(now())
+  stadium    Stadium   @relation(fields: [stadiumId], references: [id], onDelete: Cascade)
+
+  @@index([stadiumId, validFrom])
+}
+
+model Visit {
+  id         Int       @id @default(autoincrement())
+  stadiumId  Int
+  visitedOn  DateTime
+  eventName  String
+  note       String?
+  createdAt  DateTime  @default(now())
+  stadium    Stadium   @relation(fields: [stadiumId], references: [id], onDelete: Cascade)
+
+  @@index([stadiumId, visitedOn])
+}

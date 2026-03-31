@@ -1,0 +1,14 @@
+services:
+  app:
+    build:
+      context: .
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: file:/app/data/stadiumtracker.db
+    volumes:
+      - stadiumtracker_data:/app/data
+    restart: unless-stopped
+
+volumes:
+  stadiumtracker_data:
