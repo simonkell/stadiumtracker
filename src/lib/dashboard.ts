@@ -4,6 +4,7 @@ import {
   removeIrrelevantStadiums,
   repairInvalidWikipediaCapacities,
 } from "@/lib/wikipedia-import";
+import { enforceSingleVisitPerStadium } from "@/lib/visits";
 
 type StadiumWithRelations = Stadium & {
   capacityPeriods: StadiumCapacityPeriod[];
@@ -16,8 +17,8 @@ export type StadiumCard = {
   city: string;
   country: string;
   currentCapacity: number | null;
-  visitCount: number;
-  latestVisit: Visit | null;
+  hasVisit: boolean;
+  firstVisit: Visit | null;
   openedYear: number | null;
   primaryTenant: string | null;
   isInTop100: boolean;
@@ -28,10 +29,10 @@ export type DashboardData = {
   stats: {
     trackedStadiums: number;
     visitedStadiums: number;
+    remainingStadiums: number;
     top100Visited: number;
     top100Tracked: number;
     completionRate: number;
-    totalVisits: number;
   };
   stadiums: StadiumCard[];
   visitOptions: Array<{ id: number; name: string }>;
@@ -79,6 +80,7 @@ function sortByCurrentCapacity(stadiums: StadiumWithRelations[]) {
 export async function getDashboardData(): Promise<DashboardData> {
   await repairInvalidWikipediaCapacities();
   await removeIrrelevantStadiums();
+  await enforceSingleVisitPerStadium();
 
   const stadiums = await prisma.stadium.findMany({
     include: {
@@ -101,8 +103,8 @@ export async function getDashboardData(): Promise<DashboardData> {
     city: stadium.city,
     country: stadium.country,
     currentCapacity: getCurrentCapacity(stadium.capacityPeriods),
-    visitCount: stadium.visits.length,
-    latestVisit: stadium.visits[0] ?? null,
+    hasVisit: stadium.visits.length > 0,
+    firstVisit: stadium.visits[0] ?? null,
     openedYear: stadium.openedYear ?? null,
     primaryTenant: stadium.primaryTenant ?? null,
     isInTop100: top100Ids.has(stadium.id),
@@ -125,11 +127,11 @@ export async function getDashboardData(): Promise<DashboardData> {
     stats: {
       trackedStadiums: stadiums.length,
       visitedStadiums: visitedStadiumIds.size,
+      remainingStadiums: Math.max(stadiums.length - visitedStadiumIds.size, 0),
       top100Visited,
       top100Tracked,
       completionRate:
         top100Tracked === 0 ? 0 : Math.round((top100Visited / top100Tracked) * 100),
-      totalVisits: stadiums.reduce((sum, stadium) => sum + stadium.visits.length, 0),
     },
     stadiums: stadiumCards.sort((left, right) => {
       if (left.isInTop100 !== right.isInTop100) {

@@ -106,9 +106,9 @@ export default async function Home({ searchParams }: HomeProps) {
             accent="field"
           />
           <StatCard
-            label="Gesamtbesuche"
-            value={formatNumber(stats.totalVisits)}
-            hint="Mehrfachbesuche in einem Stadion bleiben erhalten und sind separat auswertbar."
+            label="Noch offen"
+            value={formatNumber(stats.remainingStadiums)}
+            hint="So viele Stadien in deiner Datenbank warten noch auf ihren ersten Besuch."
             accent="sun"
           />
           <StatCard
@@ -405,7 +405,7 @@ export default async function Home({ searchParams }: HomeProps) {
                 </div>
               ) : (
                 stadiums.map((stadium) => {
-                  const visited = stadium.visitCount > 0;
+                  const visited = stadium.hasVisit;
 
                   return (
                     <article
@@ -457,17 +457,17 @@ export default async function Home({ searchParams }: HomeProps) {
                               : "k. A."}
                           </p>
                           <p className="mt-2 text-sm text-slate-600">
-                            {stadium.visitCount} Besuch{stadium.visitCount === 1 ? "" : "e"}
+                            {visited ? "Erstbesuch gespeichert" : "Noch kein Besuch"}
                           </p>
                         </div>
                       </div>
 
-                      {stadium.latestVisit ? (
+                      {stadium.firstVisit ? (
                         <div className="mt-4 rounded-[20px] bg-white/70 p-4 text-sm leading-6 text-slate-700">
-                          <span className="font-semibold">Letzter Besuch:</span>{" "}
-                          {formatDate(stadium.latestVisit.visitedOn)} bei{" "}
-                          <span className="font-semibold">{stadium.latestVisit.eventName}</span>
-                          {stadium.latestVisit.note ? ` • ${stadium.latestVisit.note}` : ""}
+                          <span className="font-semibold">Erster Besuch:</span>{" "}
+                          {formatDate(stadium.firstVisit.visitedOn)} bei{" "}
+                          <span className="font-semibold">{stadium.firstVisit.eventName}</span>
+                          {stadium.firstVisit.note ? ` • ${stadium.firstVisit.note}` : ""}
                         </div>
                       ) : (
                         <div className="mt-4 rounded-[20px] bg-white/70 p-4 text-sm leading-6 text-slate-600">

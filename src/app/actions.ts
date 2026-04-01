@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/utils";
 import { loginWithPassword, logoutAdmin, requireAdminAccess } from "@/lib/auth";
+import { enforceSingleVisitPerStadium } from "@/lib/visits";
 import {
   importWikipediaStadiumList,
   removeIrrelevantStadiums,
@@ -87,6 +88,7 @@ export async function addCapacityPeriod(formData: FormData) {
 
 export async function addVisit(formData: FormData) {
   await requireAdminAccess();
+  await enforceSingleVisitPerStadium();
 
   const stadiumId = Number(formData.get("stadiumId"));
   const visitedOn = formData.get("visitedOn")?.toString().trim();
@@ -96,14 +98,33 @@ export async function addVisit(formData: FormData) {
     return;
   }
 
-  await prisma.visit.create({
-    data: {
-      stadiumId,
-      visitedOn: new Date(visitedOn),
-      eventName,
-      note: formData.get("note")?.toString().trim() || null,
-    },
+  const submittedVisitDate = new Date(visitedOn);
+  const submittedNote = formData.get("note")?.toString().trim() || null;
+
+  const existingVisit = await prisma.visit.findFirst({
+    where: { stadiumId },
+    orderBy: [{ visitedOn: "asc" }, { createdAt: "asc" }, { id: "asc" }],
   });
+
+  if (!existingVisit) {
+    await prisma.visit.create({
+      data: {
+        stadiumId,
+        visitedOn: submittedVisitDate,
+        eventName,
+        note: submittedNote,
+      },
+    });
+  } else if (submittedVisitDate.getTime() <= existingVisit.visitedOn.getTime()) {
+    await prisma.visit.update({
+      where: { id: existingVisit.id },
+      data: {
+        visitedOn: submittedVisitDate,
+        eventName,
+        note: submittedNote,
+      },
+    });
+  }
 
   revalidatePath("/");
 }
