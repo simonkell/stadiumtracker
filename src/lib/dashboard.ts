@@ -38,19 +38,45 @@ export type DashboardData = {
     completionRate: number;
   };
   stadiums: StadiumCard[];
-  visitOptions: Array<{ id: number; name: string }>;
-  stadiumEditOptions: Array<{
+  mapMarkers: Array<{
     id: number;
     name: string;
     city: string;
     country: string;
-    continent: string | null;
-    latitude: number | null;
-    longitude: number | null;
-    openedYear: number | null;
-    primaryTenant: string | null;
-    notes: string | null;
+    latitude: number;
+    longitude: number;
+    currentCapacity: number | null;
+    isVisited: boolean;
+    isInTop100: boolean;
+    firstVisitDate: Date | null;
+    firstVisitEvent: string | null;
   }>;
+  visitOptions: VisitOption[];
+  stadiumEditOptions: StadiumEditOption[];
+};
+
+export type VisitOption = {
+  id: number;
+  name: string;
+  firstVisit: {
+    id: number;
+    visitedOn: string;
+    eventName: string;
+    note: string | null;
+  } | null;
+};
+
+export type StadiumEditOption = {
+  id: number;
+  name: string;
+  city: string;
+  country: string;
+  continent: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  openedYear: number | null;
+  primaryTenant: string | null;
+  notes: string | null;
 };
 
 function getCurrentCapacity(periods: StadiumCapacityPeriod[]) {
@@ -163,9 +189,32 @@ export async function getDashboardData(): Promise<DashboardData> {
 
       return (right.currentCapacity ?? 0) - (left.currentCapacity ?? 0);
     }),
+    mapMarkers: stadiums
+      .filter((stadium) => stadium.latitude != null && stadium.longitude != null)
+      .map((stadium) => ({
+        id: stadium.id,
+        name: stadium.name,
+        city: stadium.city,
+        country: stadium.country,
+        latitude: stadium.latitude as number,
+        longitude: stadium.longitude as number,
+        currentCapacity: getCurrentCapacity(stadium.capacityPeriods),
+        isVisited: stadium.visits.length > 0,
+        isInTop100: top100Ids.has(stadium.id),
+        firstVisitDate: stadium.visits[0]?.visitedOn ?? null,
+        firstVisitEvent: stadium.visits[0]?.eventName ?? null,
+      })),
     visitOptions: stadiums.map((stadium) => ({
       id: stadium.id,
       name: stadium.name,
+      firstVisit: stadium.visits[0]
+        ? {
+            id: stadium.visits[0].id,
+            visitedOn: stadium.visits[0].visitedOn.toISOString().slice(0, 10),
+            eventName: stadium.visits[0].eventName,
+            note: stadium.visits[0].note ?? null,
+          }
+        : null,
     })),
     stadiumEditOptions: stadiums.map((stadium) => ({
       id: stadium.id,

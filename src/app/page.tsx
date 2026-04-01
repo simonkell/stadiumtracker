@@ -1,17 +1,13 @@
 import { Trophy, MapPinned, NotebookPen, Landmark } from "lucide-react";
 import {
   addCapacityPeriod,
-  addVisit,
-  createStadium,
-  deleteStadium,
-  deleteVisit,
   importStadiumsFromWikipedia,
   lockAdminAccess,
   repairWikipediaImportData,
   unlockAdminAccess,
-  updateStadium,
-  updateVisit,
 } from "@/app/actions";
+import { StadiumAdminForm, VisitAdminForm } from "@/components/admin-forms";
+import { StadiumMap } from "@/components/stadium-map";
 import { StatCard } from "@/components/stat-card";
 import { isAdminAuthenticated } from "@/lib/auth";
 import { getDashboardData } from "@/lib/dashboard";
@@ -51,7 +47,8 @@ function AdminCard({
 }
 
 export default async function Home({ searchParams }: HomeProps) {
-  const { stats, stadiums, visitOptions, stadiumEditOptions } = await getDashboardData();
+  const { stats, stadiums, mapMarkers, visitOptions, stadiumEditOptions } =
+    await getDashboardData();
   const isAdmin = await isAdminAuthenticated();
   const resolvedSearchParams = await searchParams;
   const authFailed = resolvedSearchParams?.auth === "failed";
@@ -170,6 +167,33 @@ export default async function Home({ searchParams }: HomeProps) {
           </div>
         </section>
 
+        <section className="rounded-[30px] border border-slate-200/80 bg-white/90 p-5 shadow-[0_20px_50px_-40px_rgba(0,34,68,0.4)] md:p-6">
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold">Stadionkarte</h2>
+              <p className="text-sm leading-6 text-slate-600">
+                Alle Stadien mit Koordinaten werden auf der Weltkarte dargestellt. Grün
+                bedeutet besucht, Gelb bedeutet noch offen.
+              </p>
+            </div>
+            <div className="flex flex-col gap-2 text-sm text-slate-600 sm:flex-row sm:items-center sm:gap-4">
+              <div className="flex items-center gap-2">
+                <span className="h-3 w-3 rounded-full bg-emerald-500" />
+                Besucht
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="h-3 w-3 rounded-full bg-amber-400" />
+                Noch offen
+              </div>
+              <div>{mapMarkers.length} Marker mit Koordinaten</div>
+            </div>
+          </div>
+
+          <div className="mt-5">
+            <StadiumMap markers={mapMarkers} />
+          </div>
+        </section>
+
         <section className="grid gap-6 xl:grid-cols-[1.05fr_1.25fr] xl:items-start">
           <div className="grid h-fit gap-6 self-start">
             {isAdmin ? (
@@ -211,175 +235,7 @@ export default async function Home({ searchParams }: HomeProps) {
                     </div>
                   }
                 >
-                  <details className="rounded-[20px] border border-slate-200 bg-slate-50/70 p-4">
-                    <summary className="cursor-pointer text-sm font-semibold uppercase tracking-[0.18em] text-slate-600">
-                      Bestehendes Stadion bearbeiten oder löschen
-                    </summary>
-
-                    <div className="mt-4 grid gap-4">
-                      {stadiumEditOptions.length === 0 ? (
-                        <p className="text-sm text-slate-600">Noch keine Stadien vorhanden.</p>
-                      ) : (
-                        stadiumEditOptions.map((stadium) => (
-                          <div
-                            key={stadium.id}
-                            className="rounded-[18px] border border-slate-200 bg-white p-4"
-                          >
-                            <div className="mb-4">
-                              <p className="font-semibold text-slate-900">{stadium.name}</p>
-                              <p className="text-sm text-slate-600">
-                                {stadium.city}, {stadium.country}
-                              </p>
-                            </div>
-
-                            <form action={updateStadium} className="grid gap-4">
-                              <input name="stadiumId" type="hidden" value={stadium.id} />
-
-                              <div className="grid gap-4 md:grid-cols-2">
-                                <label className="grid gap-2">
-                                  <span className="text-sm font-medium text-slate-700">Name</span>
-                                  <input className="input" name="name" defaultValue={stadium.name} required />
-                                </label>
-                                <label className="grid gap-2">
-                                  <span className="text-sm font-medium text-slate-700">Land</span>
-                                  <input className="input" name="country" defaultValue={stadium.country} required />
-                                </label>
-                              </div>
-
-                              <div className="grid gap-4 md:grid-cols-2">
-                                <label className="grid gap-2">
-                                  <span className="text-sm font-medium text-slate-700">Stadt</span>
-                                  <input className="input" name="city" defaultValue={stadium.city} required />
-                                </label>
-                                <label className="grid gap-2">
-                                  <span className="text-sm font-medium text-slate-700">Kontinent</span>
-                                  <input className="input" name="continent" defaultValue={stadium.continent ?? ""} />
-                                </label>
-                              </div>
-
-                              <div className="grid gap-4 md:grid-cols-3">
-                                <label className="grid gap-2">
-                                  <span className="text-sm font-medium text-slate-700">Eröffnet</span>
-                                  <input
-                                    className="input"
-                                    name="openedYear"
-                                    type="number"
-                                    min="1800"
-                                    defaultValue={stadium.openedYear ?? ""}
-                                  />
-                                </label>
-                                <label className="grid gap-2">
-                                  <span className="text-sm font-medium text-slate-700">Breitengrad</span>
-                                  <input
-                                    className="input"
-                                    name="latitude"
-                                    type="number"
-                                    step="0.000001"
-                                    defaultValue={stadium.latitude ?? ""}
-                                  />
-                                </label>
-                                <label className="grid gap-2">
-                                  <span className="text-sm font-medium text-slate-700">Längengrad</span>
-                                  <input
-                                    className="input"
-                                    name="longitude"
-                                    type="number"
-                                    step="0.000001"
-                                    defaultValue={stadium.longitude ?? ""}
-                                  />
-                                </label>
-                              </div>
-
-                              <label className="grid gap-2">
-                                <span className="text-sm font-medium text-slate-700">Primärer Nutzer / Club</span>
-                                <input
-                                  className="input"
-                                  name="primaryTenant"
-                                  defaultValue={stadium.primaryTenant ?? ""}
-                                />
-                              </label>
-
-                              <label className="grid gap-2">
-                                <span className="text-sm font-medium text-slate-700">Notizen</span>
-                                <textarea
-                                  className="textarea"
-                                  name="notes"
-                                  rows={3}
-                                  defaultValue={stadium.notes ?? ""}
-                                />
-                              </label>
-
-                              <div className="flex flex-col gap-3 sm:flex-row">
-                                <button className="button-primary button-secondary" type="submit">
-                                  Stadion aktualisieren
-                                </button>
-                              </div>
-                            </form>
-
-                            <form action={deleteStadium} className="mt-3">
-                              <input name="stadiumId" type="hidden" value={stadium.id} />
-                              <button className="button-primary button-dark" type="submit">
-                                Stadion löschen
-                              </button>
-                            </form>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </details>
-
-                  <form action={createStadium} className="mt-4 grid gap-4">
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <label className="grid gap-2">
-                        <span className="text-sm font-medium text-slate-700">Name</span>
-                        <input className="input" name="name" required />
-                      </label>
-                      <label className="grid gap-2">
-                        <span className="text-sm font-medium text-slate-700">Land</span>
-                        <input className="input" name="country" required />
-                      </label>
-                    </div>
-
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <label className="grid gap-2">
-                        <span className="text-sm font-medium text-slate-700">Stadt</span>
-                        <input className="input" name="city" required />
-                      </label>
-                      <label className="grid gap-2">
-                        <span className="text-sm font-medium text-slate-700">Kontinent</span>
-                        <input className="input" name="continent" />
-                      </label>
-                    </div>
-
-                    <div className="grid gap-4 md:grid-cols-3">
-                      <label className="grid gap-2">
-                        <span className="text-sm font-medium text-slate-700">Eröffnet</span>
-                        <input className="input" name="openedYear" type="number" min="1800" />
-                      </label>
-                      <label className="grid gap-2">
-                        <span className="text-sm font-medium text-slate-700">Breitengrad</span>
-                        <input className="input" name="latitude" type="number" step="0.000001" />
-                      </label>
-                      <label className="grid gap-2">
-                        <span className="text-sm font-medium text-slate-700">Längengrad</span>
-                        <input className="input" name="longitude" type="number" step="0.000001" />
-                      </label>
-                    </div>
-
-                    <label className="grid gap-2">
-                      <span className="text-sm font-medium text-slate-700">Primärer Nutzer / Club</span>
-                      <input className="input" name="primaryTenant" />
-                    </label>
-
-                    <label className="grid gap-2">
-                      <span className="text-sm font-medium text-slate-700">Notizen</span>
-                      <textarea className="textarea" name="notes" rows={4} />
-                    </label>
-
-                    <button className="button-primary" type="submit">
-                      Stadion speichern
-                    </button>
-                  </form>
+                  <StadiumAdminForm stadiumOptions={stadiumEditOptions} />
                 </AdminCard>
 
                 <AdminCard
@@ -450,46 +306,7 @@ export default async function Home({ searchParams }: HomeProps) {
                     </div>
                   }
                 >
-                  <form action={addVisit} className="grid gap-4">
-                    <label className="grid gap-2">
-                      <span className="text-sm font-medium text-slate-700">Stadion</span>
-                      <select className="input" name="stadiumId" required defaultValue="">
-                        <option value="" disabled>
-                          Stadion wählen
-                        </option>
-                        {visitOptions.map((stadium) => (
-                          <option key={stadium.id} value={stadium.id}>
-                            {stadium.name}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <label className="grid gap-2">
-                        <span className="text-sm font-medium text-slate-700">Besuchsdatum</span>
-                        <input className="input" name="visitedOn" type="date" required />
-                      </label>
-                      <label className="grid gap-2">
-                        <span className="text-sm font-medium text-slate-700">Event</span>
-                        <input
-                          className="input"
-                          name="eventName"
-                          placeholder="z. B. Champions League Finale"
-                          required
-                        />
-                      </label>
-                    </div>
-
-                    <label className="grid gap-2">
-                      <span className="text-sm font-medium text-slate-700">Notiz</span>
-                      <textarea className="textarea" name="note" rows={4} />
-                    </label>
-
-                    <button className="button-primary button-dark" type="submit">
-                      Besuch speichern
-                    </button>
-                  </form>
+                  <VisitAdminForm visitOptions={visitOptions} />
                 </AdminCard>
               </>
             ) : (
@@ -531,6 +348,7 @@ export default async function Home({ searchParams }: HomeProps) {
                   return (
                     <article
                       key={stadium.id}
+                      id={`stadium-${stadium.id}`}
                       className={`rounded-[26px] border p-5 transition-colors ${
                         visited
                           ? "border-emerald-300 bg-emerald-50/85"
@@ -589,70 +407,6 @@ export default async function Home({ searchParams }: HomeProps) {
                           {formatDate(stadium.firstVisit.visitedOn)} bei{" "}
                           <span className="font-semibold">{stadium.firstVisit.eventName}</span>
                           {stadium.firstVisit.note ? ` • ${stadium.firstVisit.note}` : ""}
-
-                          {isAdmin ? (
-                            <div className="mt-5 rounded-[18px] border border-slate-200 bg-white/85 p-4">
-                              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-                                Erstbesuch bearbeiten
-                              </p>
-
-                              <form action={updateVisit} className="mt-4 grid gap-4">
-                                <input name="visitId" type="hidden" value={stadium.firstVisit.id} />
-
-                                <div className="grid gap-4 md:grid-cols-2">
-                                  <label className="grid gap-2">
-                                    <span className="text-sm font-medium text-slate-700">
-                                      Besuchsdatum
-                                    </span>
-                                    <input
-                                      className="input"
-                                      name="visitedOn"
-                                      type="date"
-                                      defaultValue={stadium.firstVisit.visitedOn
-                                        .toISOString()
-                                        .slice(0, 10)}
-                                      required
-                                    />
-                                  </label>
-
-                                  <label className="grid gap-2">
-                                    <span className="text-sm font-medium text-slate-700">
-                                      Event
-                                    </span>
-                                    <input
-                                      className="input"
-                                      name="eventName"
-                                      defaultValue={stadium.firstVisit.eventName}
-                                      required
-                                    />
-                                  </label>
-                                </div>
-
-                                <label className="grid gap-2">
-                                  <span className="text-sm font-medium text-slate-700">Notiz</span>
-                                  <textarea
-                                    className="textarea"
-                                    name="note"
-                                    rows={3}
-                                    defaultValue={stadium.firstVisit.note ?? ""}
-                                  />
-                                </label>
-
-                                <div className="flex flex-col gap-3 sm:flex-row">
-                                  <button className="button-primary button-secondary" type="submit">
-                                    Erstbesuch aktualisieren
-                                  </button>
-                                </div>
-                              </form>
-
-                              <form action={deleteVisit} className="mt-3">
-                                <input name="visitId" type="hidden" value={stadium.firstVisit.id} />
-                                <button className="button-primary button-dark" type="submit">
-                                  Erstbesuch löschen
-                                </button>
-                              </form>
-                            </div>
-                          ) : null}
                         </div>
                       ) : (
                         <div className="mt-4 rounded-[20px] bg-white/70 p-4 text-sm leading-6 text-slate-600">
