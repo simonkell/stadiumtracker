@@ -30,12 +30,27 @@ export type DashboardData = {
     trackedStadiums: number;
     visitedStadiums: number;
     remainingStadiums: number;
+    top50Visited: number;
+    top50Tracked: number;
+    top50CompletionRate: number;
     top100Visited: number;
     top100Tracked: number;
     completionRate: number;
   };
   stadiums: StadiumCard[];
   visitOptions: Array<{ id: number; name: string }>;
+  stadiumEditOptions: Array<{
+    id: number;
+    name: string;
+    city: string;
+    country: string;
+    continent: string | null;
+    latitude: number | null;
+    longitude: number | null;
+    openedYear: number | null;
+    primaryTenant: string | null;
+    notes: string | null;
+  }>;
 };
 
 function getCurrentCapacity(periods: StadiumCapacityPeriod[]) {
@@ -122,12 +137,20 @@ export async function getDashboardData(): Promise<DashboardData> {
   const top100Visited = rankedStadiums
     .slice(0, 100)
     .filter((stadium) => visitedStadiumIds.has(stadium.id)).length;
+  const top50Tracked = rankedStadiums.slice(0, 50).length;
+  const top50Visited = rankedStadiums
+    .slice(0, 50)
+    .filter((stadium) => visitedStadiumIds.has(stadium.id)).length;
 
   return {
     stats: {
       trackedStadiums: stadiums.length,
       visitedStadiums: visitedStadiumIds.size,
       remainingStadiums: Math.max(stadiums.length - visitedStadiumIds.size, 0),
+      top50Visited,
+      top50Tracked,
+      top50CompletionRate:
+        top50Tracked === 0 ? 0 : Math.round((top50Visited / top50Tracked) * 100),
       top100Visited,
       top100Tracked,
       completionRate:
@@ -143,6 +166,18 @@ export async function getDashboardData(): Promise<DashboardData> {
     visitOptions: stadiums.map((stadium) => ({
       id: stadium.id,
       name: stadium.name,
+    })),
+    stadiumEditOptions: stadiums.map((stadium) => ({
+      id: stadium.id,
+      name: stadium.name,
+      city: stadium.city,
+      country: stadium.country,
+      continent: stadium.continent ?? null,
+      latitude: stadium.latitude ?? null,
+      longitude: stadium.longitude ?? null,
+      openedYear: stadium.openedYear ?? null,
+      primaryTenant: stadium.primaryTenant ?? null,
+      notes: stadium.notes ?? null,
     })),
   };
 }

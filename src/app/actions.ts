@@ -59,6 +59,56 @@ export async function createStadium(formData: FormData) {
   revalidatePath("/");
 }
 
+export async function updateStadium(formData: FormData) {
+  await requireAdminAccess();
+
+  const stadiumId = Number(formData.get("stadiumId"));
+  const name = formData.get("name")?.toString().trim();
+  const city = formData.get("city")?.toString().trim();
+  const country = formData.get("country")?.toString().trim();
+
+  if (!stadiumId || !name || !city || !country) {
+    return;
+  }
+
+  const latitude = formData.get("latitude")?.toString().trim();
+  const longitude = formData.get("longitude")?.toString().trim();
+  const openedYear = formData.get("openedYear")?.toString().trim();
+
+  await prisma.stadium.update({
+    where: { id: stadiumId },
+    data: {
+      name,
+      city,
+      country,
+      continent: formData.get("continent")?.toString().trim() || null,
+      latitude: latitude ? Number(latitude) : null,
+      longitude: longitude ? Number(longitude) : null,
+      openedYear: openedYear ? Number(openedYear) : null,
+      primaryTenant: formData.get("primaryTenant")?.toString().trim() || null,
+      notes: formData.get("notes")?.toString().trim() || null,
+    },
+  });
+
+  revalidatePath("/");
+}
+
+export async function deleteStadium(formData: FormData) {
+  await requireAdminAccess();
+
+  const stadiumId = Number(formData.get("stadiumId"));
+
+  if (!stadiumId) {
+    return;
+  }
+
+  await prisma.stadium.delete({
+    where: { id: stadiumId },
+  });
+
+  revalidatePath("/");
+}
+
 export async function addCapacityPeriod(formData: FormData) {
   await requireAdminAccess();
 
@@ -125,6 +175,47 @@ export async function addVisit(formData: FormData) {
       },
     });
   }
+
+  revalidatePath("/");
+}
+
+export async function updateVisit(formData: FormData) {
+  await requireAdminAccess();
+  await enforceSingleVisitPerStadium();
+
+  const visitId = Number(formData.get("visitId"));
+  const visitedOn = formData.get("visitedOn")?.toString().trim();
+  const eventName = formData.get("eventName")?.toString().trim();
+
+  if (!visitId || !visitedOn || !eventName) {
+    return;
+  }
+
+  await prisma.visit.update({
+    where: { id: visitId },
+    data: {
+      visitedOn: new Date(visitedOn),
+      eventName,
+      note: formData.get("note")?.toString().trim() || null,
+    },
+  });
+
+  await enforceSingleVisitPerStadium();
+  revalidatePath("/");
+}
+
+export async function deleteVisit(formData: FormData) {
+  await requireAdminAccess();
+
+  const visitId = Number(formData.get("visitId"));
+
+  if (!visitId) {
+    return;
+  }
+
+  await prisma.visit.delete({
+    where: { id: visitId },
+  });
 
   revalidatePath("/");
 }
