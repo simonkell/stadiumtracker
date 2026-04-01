@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { populateCoordinatesIfMissing, populateMissingCoordinates } from "@/lib/geocoding";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/utils";
 import { loginWithPassword, logoutAdmin, requireAdminAccess } from "@/lib/auth";
@@ -41,7 +42,7 @@ export async function createStadium(formData: FormData) {
   const longitude = formData.get("longitude")?.toString().trim();
   const openedYear = formData.get("openedYear")?.toString().trim();
 
-  await prisma.stadium.create({
+  const stadium = await prisma.stadium.create({
     data: {
       slug,
       name,
@@ -55,6 +56,8 @@ export async function createStadium(formData: FormData) {
       notes: formData.get("notes")?.toString().trim() || null,
     },
   });
+
+  await populateCoordinatesIfMissing(stadium.id);
 
   revalidatePath("/");
 }
@@ -89,6 +92,8 @@ export async function updateStadium(formData: FormData) {
       notes: formData.get("notes")?.toString().trim() || null,
     },
   });
+
+  await populateCoordinatesIfMissing(stadiumId);
 
   revalidatePath("/");
 }
@@ -230,6 +235,12 @@ export async function repairWikipediaImportData() {
   await requireAdminAccess();
   await repairInvalidWikipediaCapacities();
   await removeIrrelevantStadiums();
+  revalidatePath("/");
+}
+
+export async function fillMissingCoordinates() {
+  await requireAdminAccess();
+  await populateMissingCoordinates();
   revalidatePath("/");
 }
 

@@ -1,6 +1,7 @@
 import { Trophy, MapPinned, NotebookPen, Landmark } from "lucide-react";
 import {
   addCapacityPeriod,
+  fillMissingCoordinates,
   importStadiumsFromWikipedia,
   lockAdminAccess,
   repairWikipediaImportData,
@@ -62,12 +63,12 @@ export default async function Home({ searchParams }: HomeProps) {
               Stadium Tracker
             </p>
             <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-tight text-slate-950 md:text-6xl">
-              Verfolge deine Stadionbesuche in den größten Arenen der Welt.
+              Simons Stadionbesuche in den größten Arenen der Welt.
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-8 text-slate-700 md:text-lg">
-              Diese erste Version verwaltet Stadien, historische Kapazitäten und
-              Besuche inklusive Event und Notiz. Die wichtigste Kennzahl ist schon
-              integriert: Wie viele der aktuell größten Stadien hast du besucht?
+              Diese Seite dokumentiert Simons Stadionreisen, historische Kapazitäten
+              und Erstbesuche inklusive Event und Notiz. Im Mittelpunkt steht die
+              Frage, wie viele der aktuell größten Stadien der Welt bereits besucht wurden.
             </p>
           </div>
 
@@ -87,7 +88,7 @@ export default async function Home({ searchParams }: HomeProps) {
               />
             </div>
             <p className="text-sm leading-6 text-slate-400">
-              Sobald 100 Stadien eingepflegt sind, wird daraus automatisch deine echte
+              Sobald 100 Stadien eingepflegt sind, zeigt diese Kennzahl Simons echte
               Top-100-Abdeckung.
             </p>
           </div>
@@ -97,7 +98,7 @@ export default async function Home({ searchParams }: HomeProps) {
           <StatCard
             label="Getrackte Stadien"
             value={formatNumber(stats.trackedStadiums)}
-            hint="Alle Stadien in deiner Datenbank, egal ob besucht oder noch offen."
+            hint="Alle derzeit erfassten Stadien in Simons Datenbank, egal ob besucht oder noch offen."
             accent="ink"
           />
           <StatCard
@@ -123,10 +124,10 @@ export default async function Home({ searchParams }: HomeProps) {
         <section className="rounded-[30px] border border-slate-200/80 bg-white/90 p-5 shadow-[0_20px_50px_-40px_rgba(0,34,68,0.4)] md:p-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <h2 className="text-xl font-semibold">Schreibschutz</h2>
+                <h2 className="text-xl font-semibold">Schreibschutz</h2>
               <p className="mt-1 text-sm leading-6 text-slate-600">
                 Stadionliste und Statistiken sind öffentlich sichtbar. Änderungen an der
-                Datenbank sind nur nach Passwort-Freischaltung möglich.
+                Datenbank sind nur nach Passwort-Freischaltung für Simon möglich.
               </p>
             </div>
 
@@ -217,6 +218,12 @@ export default async function Home({ searchParams }: HomeProps) {
                         </button>
                       </form>
 
+                      <form action={fillMissingCoordinates}>
+                        <button className="button-primary button-secondary" type="submit">
+                          Fehlende Koordinaten per OSM ergänzen
+                        </button>
+                      </form>
+
                       <form action={importStadiumsFromWikipedia}>
                         <button className="button-primary" type="submit">
                           Alle Stadien von Wikipedia importieren
@@ -299,7 +306,7 @@ export default async function Home({ searchParams }: HomeProps) {
 
                 <AdminCard
                   title="Besuch eintragen"
-                  description="Markiere ein Stadion als besucht und notiere dir Event, Datum und Erinnerung."
+                  description="Hinterlege Simons Erstbesuch mit Event, Datum und kurzer Erinnerung."
                   icon={
                     <div className="rounded-2xl bg-sky-100 p-3 text-sky-800">
                       <NotebookPen className="h-5 w-5" />
@@ -314,8 +321,8 @@ export default async function Home({ searchParams }: HomeProps) {
                 <h2 className="text-xl font-semibold">Bearbeitungsbereich geschützt</h2>
                 <p className="mt-3 text-sm leading-7 text-slate-600">
                   Die Formulare für Import, neue Stadien, Kapazitäten und Besuche sind im
-                  öffentlichen Betrieb geschützt. Gib oben das Passwort ein, wenn du Änderungen
-                  an der Datenbank vornehmen möchtest.
+                  öffentlichen Betrieb geschützt. Änderungen an der Datenbank sind nur nach
+                  interner Freischaltung möglich.
                 </p>
               </section>
             )}

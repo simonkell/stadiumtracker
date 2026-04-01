@@ -119,8 +119,8 @@ export function StadiumAdminForm({ stadiumOptions }: StadiumAdminFormProps) {
 
       <p className="text-sm leading-6 text-slate-600">
         {selectedStadium
-          ? "Die Werte des ausgewählten Stadions sind geladen und können direkt angepasst werden."
-          : "Ohne Auswahl legst du hier ein neues Stadion an."}
+          ? "Die Daten des ausgewählten Stadions sind geladen und können für Simons Tracking direkt angepasst werden."
+          : "Ohne Auswahl wird hier ein neues Stadion für Simons Sammlung angelegt."}
       </p>
 
       <form action={formAction} className="grid gap-4">
@@ -306,8 +306,8 @@ export function VisitAdminForm({ visitOptions }: VisitAdminFormProps) {
 
       <p className="text-sm leading-6 text-slate-600">
         {hasExistingVisit
-          ? "Für dieses Stadion ist bereits ein Erstbesuch hinterlegt. Du bearbeitest ihn direkt in dieser Maske."
-          : "Wenn für das ausgewählte Stadion noch kein Besuch existiert, wird hier ein neuer Erstbesuch angelegt."}
+          ? "Für dieses Stadion ist bereits ein Erstbesuch hinterlegt. Er kann direkt in dieser Maske angepasst werden."
+          : "Wenn für das ausgewählte Stadion noch kein Besuch existiert, wird hier ein neuer Erstbesuch für Simon angelegt."}
       </p>
 
       <form action={formAction} className="grid gap-4">

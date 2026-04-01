@@ -33,6 +33,15 @@ ADMIN_PASSWORD=dein-passwort
 AUTH_SECRET=ein-langer-zufaelliger-wert
 ```
 
+Optional fuer die automatische Koordinaten-Suche ueber OpenStreetMap/Nominatim:
+
+```bash
+NOMINATIM_EMAIL=du@example.com
+NOMINATIM_USER_AGENT=stadiumtracker/0.1 (+https://deine-domain.example)
+```
+
+Vorhandene Koordinaten werden dabei nicht ueberschrieben. Die Sammel-Ergaenzung laeuft bewusst nur fuer Stadien ohne Lat/Lon.
+
 ## Docker starten
 
 ```bash
