@@ -18,6 +18,8 @@ model Stadium {
   longitude       Float?
   openedYear      Int?
   demolishedYear  Int?
+  isDemolished    Boolean                 @default(false)
+  isDangerous     Boolean                 @default(false)
   primaryTenant   String?
   notes           String?
   createdAt       DateTime                @default(now())

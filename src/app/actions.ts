@@ -26,6 +26,80 @@ async function createUniqueSlug(name: string) {
   return slug;
 }
 
+function toCheckedValue(formData: FormData, key: string) {
+  return formData.get(key)?.toString() === "on";
+}
+
+function getPreviousDay(date: Date) {
+  const previousDay = new Date(date);
+  previousDay.setDate(previousDay.getDate() - 1);
+  return previousDay;
+}
+
+async function alignCapacityPeriods(stadiumId: number, periodId: number) {
+  const periods = await prisma.stadiumCapacityPeriod.findMany({
+    where: { stadiumId },
+    orderBy: [{ validFrom: "asc" }, { createdAt: "asc" }, { id: "asc" }],
+  });
+
+  const currentIndex = periods.findIndex((period) => period.id === periodId);
+
+  if (currentIndex === -1) {
+    return;
+  }
+
+  const currentPeriod = periods[currentIndex];
+
+  if (!currentPeriod.validFrom) {
+    return;
+  }
+
+  const previousDay = getPreviousDay(currentPeriod.validFrom);
+  const updates: Array<ReturnType<typeof prisma.stadiumCapacityPeriod.update>> = [];
+
+  for (let index = currentIndex - 1; index >= 0; index -= 1) {
+    const candidate = periods[index];
+    const overlapsCurrent =
+      !candidate.validTo || candidate.validTo.getTime() >= currentPeriod.validFrom.getTime();
+
+    if (overlapsCurrent) {
+      updates.push(
+        prisma.stadiumCapacityPeriod.update({
+          where: { id: candidate.id },
+          data: { validTo: previousDay },
+        }),
+      );
+      break;
+    }
+  }
+
+  const nextPeriod = periods
+    .slice(currentIndex + 1)
+    .find(
+      (period) =>
+        period.validFrom && period.validFrom.getTime() > currentPeriod.validFrom!.getTime(),
+    );
+
+  if (nextPeriod?.validFrom) {
+    const currentShouldEndOn = getPreviousDay(nextPeriod.validFrom);
+    const shouldUpdateCurrent =
+      !currentPeriod.validTo || currentPeriod.validTo.getTime() > currentShouldEndOn.getTime();
+
+    if (shouldUpdateCurrent) {
+      updates.push(
+        prisma.stadiumCapacityPeriod.update({
+          where: { id: currentPeriod.id },
+          data: { validTo: currentShouldEndOn },
+        }),
+      );
+    }
+  }
+
+  if (updates.length > 0) {
+    await prisma.$transaction(updates);
+  }
+}
+
 export async function createStadium(formData: FormData) {
   await requireAdminAccess();
 
@@ -52,6 +126,8 @@ export async function createStadium(formData: FormData) {
       latitude: latitude ? Number(latitude) : null,
       longitude: longitude ? Number(longitude) : null,
       openedYear: openedYear ? Number(openedYear) : null,
+      isDemolished: toCheckedValue(formData, "isDemolished"),
+      isDangerous: toCheckedValue(formData, "isDangerous"),
       primaryTenant: formData.get("primaryTenant")?.toString().trim() || null,
       notes: formData.get("notes")?.toString().trim() || null,
     },
@@ -88,6 +164,8 @@ export async function updateStadium(formData: FormData) {
       latitude: latitude ? Number(latitude) : null,
       longitude: longitude ? Number(longitude) : null,
       openedYear: openedYear ? Number(openedYear) : null,
+      isDemolished: toCheckedValue(formData, "isDemolished"),
+      isDangerous: toCheckedValue(formData, "isDangerous"),
       primaryTenant: formData.get("primaryTenant")?.toString().trim() || null,
       notes: formData.get("notes")?.toString().trim() || null,
     },
@@ -127,7 +205,7 @@ export async function addCapacityPeriod(formData: FormData) {
   const validFrom = formData.get("validFrom")?.toString().trim();
   const validTo = formData.get("validTo")?.toString().trim();
 
-  await prisma.stadiumCapacityPeriod.create({
+  const period = await prisma.stadiumCapacityPeriod.create({
     data: {
       stadiumId,
       capacity,
@@ -136,6 +214,53 @@ export async function addCapacityPeriod(formData: FormData) {
       source: formData.get("source")?.toString().trim() || null,
       note: formData.get("note")?.toString().trim() || null,
     },
+  });
+
+  await alignCapacityPeriods(stadiumId, period.id);
+
+  revalidatePath("/");
+}
+
+export async function updateCapacityPeriod(formData: FormData) {
+  await requireAdminAccess();
+
+  const capacityPeriodId = Number(formData.get("capacityPeriodId"));
+  const capacity = Number(formData.get("capacity"));
+
+  if (!capacityPeriodId || !capacity) {
+    return;
+  }
+
+  const validFrom = formData.get("validFrom")?.toString().trim();
+  const validTo = formData.get("validTo")?.toString().trim();
+
+  const updatedPeriod = await prisma.stadiumCapacityPeriod.update({
+    where: { id: capacityPeriodId },
+    data: {
+      capacity,
+      validFrom: validFrom ? new Date(validFrom) : null,
+      validTo: validTo ? new Date(validTo) : null,
+      source: formData.get("source")?.toString().trim() || null,
+      note: formData.get("note")?.toString().trim() || null,
+    },
+  });
+
+  await alignCapacityPeriods(updatedPeriod.stadiumId, updatedPeriod.id);
+
+  revalidatePath("/");
+}
+
+export async function deleteCapacityPeriod(formData: FormData) {
+  await requireAdminAccess();
+
+  const capacityPeriodId = Number(formData.get("capacityPeriodId"));
+
+  if (!capacityPeriodId) {
+    return;
+  }
+
+  await prisma.stadiumCapacityPeriod.delete({
+    where: { id: capacityPeriodId },
   });
 
   revalidatePath("/");

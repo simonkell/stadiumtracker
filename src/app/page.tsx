@@ -1,13 +1,12 @@
 import { Trophy, MapPinned, NotebookPen, Landmark } from "lucide-react";
 import {
-  addCapacityPeriod,
   fillMissingCoordinates,
   importStadiumsFromWikipedia,
   lockAdminAccess,
   repairWikipediaImportData,
   unlockAdminAccess,
 } from "@/app/actions";
-import { StadiumAdminForm, VisitAdminForm } from "@/components/admin-forms";
+import { CapacityAdminForm, StadiumAdminForm, VisitAdminForm } from "@/components/admin-forms";
 import { StadiumMap } from "@/components/stadium-map";
 import { StatCard } from "@/components/stat-card";
 import { isAdminAuthenticated } from "@/lib/auth";
@@ -48,8 +47,15 @@ function AdminCard({
 }
 
 export default async function Home({ searchParams }: HomeProps) {
-  const { stats, stadiums, mapMarkers, visitOptions, stadiumEditOptions } =
-    await getDashboardData();
+  const {
+    stats,
+    continentCoverage,
+    stadiums,
+    mapMarkers,
+    visitOptions,
+    stadiumEditOptions,
+    capacityOptions,
+  } = await getDashboardData();
   const isAdmin = await isAdminAuthenticated();
   const resolvedSearchParams = await searchParams;
   const authFailed = resolvedSearchParams?.auth === "failed";
@@ -98,7 +104,7 @@ export default async function Home({ searchParams }: HomeProps) {
           <StatCard
             label="Getrackte Stadien"
             value={formatNumber(stats.trackedStadiums)}
-            hint="Alle derzeit erfassten Stadien in Simons Datenbank, egal ob besucht oder noch offen."
+            hint="Alle aktuell relevanten Stadien in Simons Datenbank. Abgerissene Stadien zählen hier nicht mit."
             accent="ink"
           />
           <StatCard
@@ -119,6 +125,71 @@ export default async function Home({ searchParams }: HomeProps) {
             hint={`Aktuell ${stats.top50Visited} von ${stats.top50Tracked} der größten 50 Stadien besucht.`}
             accent="field"
           />
+        </section>
+
+        <section className="rounded-[30px] border border-slate-200/80 bg-white/90 p-5 shadow-[0_20px_50px_-40px_rgba(0,34,68,0.4)] md:p-6">
+          <div>
+            <h2 className="text-2xl font-semibold">Kontinent-Abdeckung</h2>
+            <p className="mt-1 text-sm leading-6 text-slate-600">
+              So verteilt sich Simons Fortschritt über die aktuell relevanten Kontinente hinweg.
+            </p>
+          </div>
+
+          <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {continentCoverage.map((entry) => (
+              <article
+                key={entry.continent}
+                className="rounded-[24px] border border-slate-200/80 bg-slate-50/85 p-4"
+              >
+                <div className="flex items-end justify-between gap-3">
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-950">{entry.continent}</h3>
+                    <p className="text-sm text-slate-600">
+                      {entry.visited} von {entry.tracked} Stadien besucht
+                    </p>
+                  </div>
+                  <p className="text-2xl font-semibold text-slate-950">{entry.percentage}%</p>
+                </div>
+                <div className="mt-4 h-3 overflow-hidden rounded-full bg-slate-200">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-[#002244] via-[#0a3d62] to-[#1f9d55]"
+                    style={{ width: `${entry.percentage}%` }}
+                  />
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="rounded-[30px] border border-slate-200/80 bg-white/90 p-5 shadow-[0_20px_50px_-40px_rgba(0,34,68,0.4)] md:p-6">
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold">Stadionkarte</h2>
+              <p className="text-sm leading-6 text-slate-600">
+                Alle Stadien mit Koordinaten werden auf der Weltkarte dargestellt. Grün
+                bedeutet besucht, Gelb bedeutet noch offen und Rot markiert aktuell zu gefährliche Ziele.
+              </p>
+            </div>
+            <div className="flex flex-col gap-2 text-sm text-slate-600 sm:flex-row sm:items-center sm:gap-4">
+              <div className="flex items-center gap-2">
+                <span className="h-3 w-3 rounded-full bg-emerald-500" />
+                Besucht
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="h-3 w-3 rounded-full bg-amber-400" />
+                Noch offen
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="h-3 w-3 rounded-full bg-rose-500" />
+                Zu gefährlich
+              </div>
+              <div>{mapMarkers.length} Marker mit Koordinaten</div>
+            </div>
+          </div>
+
+          <div className="mt-5">
+            <StadiumMap markers={mapMarkers} />
+          </div>
         </section>
 
         <section className="rounded-[30px] border border-slate-200/80 bg-white/90 p-5 shadow-[0_20px_50px_-40px_rgba(0,34,68,0.4)] md:p-6">
@@ -165,33 +236,6 @@ export default async function Home({ searchParams }: HomeProps) {
                 </button>
               </form>
             )}
-          </div>
-        </section>
-
-        <section className="rounded-[30px] border border-slate-200/80 bg-white/90 p-5 shadow-[0_20px_50px_-40px_rgba(0,34,68,0.4)] md:p-6">
-          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-            <div>
-              <h2 className="text-2xl font-semibold">Stadionkarte</h2>
-              <p className="text-sm leading-6 text-slate-600">
-                Alle Stadien mit Koordinaten werden auf der Weltkarte dargestellt. Grün
-                bedeutet besucht, Gelb bedeutet noch offen.
-              </p>
-            </div>
-            <div className="flex flex-col gap-2 text-sm text-slate-600 sm:flex-row sm:items-center sm:gap-4">
-              <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded-full bg-emerald-500" />
-                Besucht
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded-full bg-amber-400" />
-                Noch offen
-              </div>
-              <div>{mapMarkers.length} Marker mit Koordinaten</div>
-            </div>
-          </div>
-
-          <div className="mt-5">
-            <StadiumMap markers={mapMarkers} />
           </div>
         </section>
 
@@ -254,54 +298,7 @@ export default async function Home({ searchParams }: HomeProps) {
                     </div>
                   }
                 >
-                  <form action={addCapacityPeriod} className="grid gap-4">
-                    <label className="grid gap-2">
-                      <span className="text-sm font-medium text-slate-700">Stadion</span>
-                      <select className="input" name="stadiumId" required defaultValue="">
-                        <option value="" disabled>
-                          Stadion wählen
-                        </option>
-                        {visitOptions.map((stadium) => (
-                          <option key={stadium.id} value={stadium.id}>
-                            {stadium.name}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-
-                    <div className="grid gap-4 md:grid-cols-3">
-                      <label className="grid gap-2">
-                        <span className="text-sm font-medium text-slate-700">Kapazität</span>
-                        <input className="input" name="capacity" type="number" min="1" required />
-                      </label>
-                      <label className="grid gap-2">
-                        <span className="text-sm font-medium text-slate-700">Gültig ab</span>
-                        <input className="input" name="validFrom" type="date" />
-                      </label>
-                      <label className="grid gap-2">
-                        <span className="text-sm font-medium text-slate-700">Gültig bis</span>
-                        <input className="input" name="validTo" type="date" />
-                      </label>
-                    </div>
-
-                    <label className="grid gap-2">
-                      <span className="text-sm font-medium text-slate-700">Quelle</span>
-                      <input
-                        className="input"
-                        name="source"
-                        placeholder="z. B. offizieller Stadionguide oder Wikipedia"
-                      />
-                    </label>
-
-                    <label className="grid gap-2">
-                      <span className="text-sm font-medium text-slate-700">Kommentar</span>
-                      <textarea className="textarea" name="note" rows={3} />
-                    </label>
-
-                    <button className="button-primary button-secondary" type="submit">
-                      Kapazität hinterlegen
-                    </button>
-                  </form>
+                  <CapacityAdminForm capacityOptions={capacityOptions} />
                 </AdminCard>
 
                 <AdminCard
@@ -328,104 +325,127 @@ export default async function Home({ searchParams }: HomeProps) {
             )}
           </div>
 
-          <section className="self-start rounded-[30px] border border-slate-200/80 bg-white/90 p-6 shadow-[0_20px_50px_-40px_rgba(0,34,68,0.4)]">
-            <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-              <div>
-                <h2 className="text-2xl font-semibold">Stadien und Besuchsstatus</h2>
-                <p className="text-sm leading-6 text-slate-600">
-                  Grün markierte Karten sind bereits besucht. Die Sortierung priorisiert die
-                  größten aktuell erfassten Stadien.
+          {isAdmin ? (
+            <section className="self-start rounded-[30px] border border-slate-200/80 bg-white/90 p-6 shadow-[0_20px_50px_-40px_rgba(0,34,68,0.4)]">
+              <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+                <div>
+                  <h2 className="text-2xl font-semibold">Stadien und Besuchsstatus</h2>
+                  <p className="text-sm leading-6 text-slate-600">
+                    Die Sortierung priorisiert die größten aktuell erfassten Stadien. Rote Karten
+                    markieren aktuell zu gefährliche Ziele.
+                  </p>
+                </div>
+                <p className="text-sm font-medium uppercase tracking-[0.22em] text-slate-500">
+                  {stadiums.length} Einträge
                 </p>
               </div>
-              <p className="text-sm font-medium uppercase tracking-[0.22em] text-slate-500">
-                {stadiums.length} Einträge
-              </p>
-            </div>
 
-            <div className="mt-6 grid gap-4">
-              {stadiums.length === 0 ? (
-                <div className="rounded-[24px] border border-dashed border-slate-300 bg-slate-50 p-8 text-sm leading-7 text-slate-600">
-                  Noch keine Stadien vorhanden. Lege zuerst ein Stadion an oder starte später mit
-                  einem Import der größten Arenen weltweit.
-                </div>
-              ) : (
-                stadiums.map((stadium) => {
-                  const visited = stadium.hasVisit;
+              <div className="mt-6 grid gap-4">
+                {stadiums.length === 0 ? (
+                  <div className="rounded-[24px] border border-dashed border-slate-300 bg-slate-50 p-8 text-sm leading-7 text-slate-600">
+                    Noch keine Stadien vorhanden. Lege zuerst ein Stadion an oder starte später mit
+                    einem Import der größten Arenen weltweit.
+                  </div>
+                ) : (
+                  stadiums.map((stadium) => {
+                    const visited = stadium.hasVisit;
 
-                  return (
-                    <article
-                      key={stadium.id}
-                      id={`stadium-${stadium.id}`}
-                      className={`rounded-[26px] border p-5 transition-colors ${
-                        visited
-                          ? "border-emerald-300 bg-emerald-50/85"
-                          : "border-slate-300 bg-slate-100/90"
-                      }`}
-                    >
-                      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                        <div>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <h3 className="text-xl font-semibold">{stadium.name}</h3>
-                            {stadium.isInTop100 ? (
-                              <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-white">
-                                Top 100
+                    return (
+                      <article
+                        key={stadium.id}
+                        id={`stadium-${stadium.id}`}
+                        className={`rounded-[26px] border p-5 transition-colors ${
+                          stadium.isDangerous
+                            ? "border-rose-300 bg-rose-50/80"
+                            : stadium.isDemolished
+                              ? "border-slate-300 bg-slate-100/85"
+                              : visited
+                                ? "border-emerald-300 bg-emerald-50/85"
+                                : "border-slate-300 bg-slate-100/90"
+                        }`}
+                      >
+                        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                          <div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h3 className="text-xl font-semibold">{stadium.name}</h3>
+                              {stadium.isInTop100 ? (
+                                <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-white">
+                                  Top 100
+                                </span>
+                              ) : null}
+                              <span
+                                className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${
+                                  visited
+                                    ? "bg-emerald-600 text-white"
+                                    : "bg-slate-700 text-white"
+                                }`}
+                              >
+                                {visited ? "Besucht" : "Offen"}
                               </span>
-                            ) : null}
-                            <span
-                              className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${
-                                visited
-                                  ? "bg-emerald-600 text-white"
-                                  : "bg-slate-700 text-white"
-                              }`}
-                            >
-                              {visited ? "Besucht" : "Offen"}
-                            </span>
-                          </div>
-                          <p className="mt-2 text-sm leading-6 text-slate-700">
-                            {stadium.city}, {stadium.country}
-                            {stadium.openedYear ? ` • eröffnet ${stadium.openedYear}` : ""}
-                            {stadium.primaryTenant ? ` • ${stadium.primaryTenant}` : ""}
-                          </p>
-                          {stadium.coordinates ? (
-                            <p className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">
-                              {stadium.coordinates}
+                              {stadium.isDangerous ? (
+                                <span className="rounded-full bg-rose-600 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-white">
+                                  Zu gefährlich
+                                </span>
+                              ) : null}
+                              {stadium.isDemolished ? (
+                                <span className="rounded-full bg-slate-400 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-white">
+                                  Abgerissen
+                                </span>
+                              ) : null}
+                            </div>
+                            <p className="mt-2 text-sm leading-6 text-slate-700">
+                              {stadium.city}, {stadium.country}
+                              {stadium.openedYear ? ` • eröffnet ${stadium.openedYear}` : ""}
+                              {stadium.primaryTenant ? ` • ${stadium.primaryTenant}` : ""}
                             </p>
-                          ) : null}
+                            {stadium.coordinates ? (
+                              <p className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">
+                                {stadium.coordinates}
+                              </p>
+                            ) : null}
+                          </div>
+
+                          <div className="min-w-[170px] rounded-[20px] bg-white/80 p-4 text-right shadow-sm">
+                            <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
+                              Aktuelle Kapazität
+                            </p>
+                            <p className="mt-2 text-2xl font-semibold">
+                              {stadium.currentCapacity != null
+                                ? formatNumber(stadium.currentCapacity)
+                                : "k. A."}
+                            </p>
+                            <p className="mt-2 text-sm text-slate-600">
+                              {visited ? "Erstbesuch gespeichert" : "Noch kein Besuch"}
+                            </p>
+                          </div>
                         </div>
 
-                        <div className="min-w-[170px] rounded-[20px] bg-white/80 p-4 text-right shadow-sm">
-                          <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
-                            Aktuelle Kapazität
-                          </p>
-                          <p className="mt-2 text-2xl font-semibold">
-                            {stadium.currentCapacity != null
-                              ? formatNumber(stadium.currentCapacity)
-                              : "k. A."}
-                          </p>
-                          <p className="mt-2 text-sm text-slate-600">
-                            {visited ? "Erstbesuch gespeichert" : "Noch kein Besuch"}
-                          </p>
-                        </div>
-                      </div>
-
-                      {stadium.firstVisit ? (
-                        <div className="mt-4 rounded-[20px] bg-white/70 p-4 text-sm leading-6 text-slate-700">
-                          <span className="font-semibold">Erster Besuch:</span>{" "}
-                          {formatDate(stadium.firstVisit.visitedOn)} bei{" "}
-                          <span className="font-semibold">{stadium.firstVisit.eventName}</span>
-                          {stadium.firstVisit.note ? ` • ${stadium.firstVisit.note}` : ""}
-                        </div>
-                      ) : (
-                        <div className="mt-4 rounded-[20px] bg-white/70 p-4 text-sm leading-6 text-slate-600">
-                          Noch kein Besuch hinterlegt.
-                        </div>
-                      )}
-                    </article>
-                  );
-                })
-              )}
-            </div>
-          </section>
+                        {stadium.firstVisit ? (
+                          <div className="mt-4 rounded-[20px] bg-white/70 p-4 text-sm leading-6 text-slate-700">
+                            <span className="font-semibold">Erster Besuch:</span>{" "}
+                            {formatDate(stadium.firstVisit.visitedOn)} bei{" "}
+                            <span className="font-semibold">{stadium.firstVisit.eventName}</span>
+                            {stadium.firstVisit.note ? ` • ${stadium.firstVisit.note}` : ""}
+                          </div>
+                        ) : (
+                          <div className="mt-4 rounded-[20px] bg-white/70 p-4 text-sm leading-6 text-slate-600">
+                            Noch kein Besuch hinterlegt.
+                          </div>
+                        )}
+                      </article>
+                    );
+                  })
+                )}
+              </div>
+            </section>
+          ) : (
+            <section className="self-start rounded-[30px] border border-dashed border-slate-300 bg-white/85 p-6 shadow-[0_20px_50px_-40px_rgba(0,34,68,0.22)]">
+              <h2 className="text-xl font-semibold">Stadien und Besuchsstatus geschützt</h2>
+              <p className="mt-3 text-sm leading-7 text-slate-600">
+                Die detaillierte Stadionliste mit Besuchsstatus ist nur nach interner Freischaltung sichtbar.
+              </p>
+            </section>
+          )}
         </section>
       </div>
     </main>

@@ -11,6 +11,8 @@ CREATE TABLE IF NOT EXISTS "Stadium" (
   "longitude" REAL,
   "openedYear" INTEGER,
   "demolishedYear" INTEGER,
+  "isDemolished" BOOLEAN NOT NULL DEFAULT false,
+  "isDangerous" BOOLEAN NOT NULL DEFAULT false,
   "primaryTenant" TEXT,
   "notes" TEXT,
   "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
