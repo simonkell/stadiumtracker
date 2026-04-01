@@ -162,28 +162,13 @@ export default async function Home({ searchParams }: HomeProps) {
         </section>
 
         <section className="rounded-[30px] border border-slate-200/80 bg-white/90 p-5 shadow-[0_20px_50px_-40px_rgba(0,34,68,0.4)] md:p-6">
-          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <div>
             <div>
               <h2 className="text-2xl font-semibold">Stadionkarte</h2>
               <p className="text-sm leading-6 text-slate-600">
                 Alle Stadien mit Koordinaten werden auf der Weltkarte dargestellt. Grün
                 bedeutet besucht, Gelb bedeutet noch offen und Rot markiert aktuell zu gefährliche Ziele.
               </p>
-            </div>
-            <div className="flex flex-col gap-2 text-sm text-slate-600 sm:flex-row sm:items-center sm:gap-4">
-              <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded-full bg-emerald-500" />
-                Besucht
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded-full bg-amber-400" />
-                Noch offen
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded-full bg-rose-500" />
-                Zu gefährlich
-              </div>
-              <div>{mapMarkers.length} Marker mit Koordinaten</div>
             </div>
           </div>
 
