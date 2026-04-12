@@ -23,6 +23,10 @@ CREATE UNIQUE INDEX IF NOT EXISTS "Stadium_slug_key" ON "Stadium"("slug");
 CREATE INDEX IF NOT EXISTS "Stadium_country_city_idx" ON "Stadium"("country", "city");
 CREATE INDEX IF NOT EXISTS "Stadium_name_idx" ON "Stadium"("name");
 
+ALTER TABLE "Stadium" ADD COLUMN IF NOT EXISTS "demolishedYear" INTEGER;
+ALTER TABLE "Stadium" ADD COLUMN IF NOT EXISTS "isDemolished" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "Stadium" ADD COLUMN IF NOT EXISTS "isDangerous" BOOLEAN NOT NULL DEFAULT false;
+
 CREATE TABLE IF NOT EXISTS "StadiumCapacityPeriod" (
   "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   "stadiumId" INTEGER NOT NULL,
