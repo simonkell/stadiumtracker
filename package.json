@@ -15,7 +15,7 @@
     "db:setup": "npm run db:init && npm run db:seed"
   },
   "dependencies": {
-    "@prisma/client": "^6.6.0",
+    "@prisma/client": "6.19.3",
     "cheerio": "^1.2.0",
     "clsx": "^2.1.1",
     "leaflet": "^1.9.4",
@@ -32,7 +32,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.3",
-    "prisma": "^6.6.0",
+    "prisma": "6.19.3",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
