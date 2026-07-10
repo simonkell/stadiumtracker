@@ -39,6 +39,10 @@ export type DashboardData = {
     top100Tracked: number;
     completionRate: number;
   };
+  yearlyVisitProgress: Array<{
+    year: number;
+    count: number;
+  }>;
   continentCoverage: Array<{
     continent: string;
     tracked: number;
@@ -234,6 +238,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     "Oceania",
   ];
   const continentMap = new Map<string, { tracked: number; visited: number }>();
+  const yearlyVisitMap = new Map<number, number>();
 
   for (const stadium of activeStadiums) {
     const continent = stadium.continent?.trim() || "Unbekannt";
@@ -242,6 +247,12 @@ export async function getDashboardData(): Promise<DashboardData> {
 
     if (stadium.visits.length > 0) {
       current.visited += 1;
+
+      const visitYear = stadium.visits[0]?.visitedOn.getFullYear();
+
+      if (visitYear != null) {
+        yearlyVisitMap.set(visitYear, (yearlyVisitMap.get(visitYear) ?? 0) + 1);
+      }
     }
 
     continentMap.set(continent, current);
@@ -261,6 +272,9 @@ export async function getDashboardData(): Promise<DashboardData> {
       completionRate:
         top100Tracked === 0 ? 0 : Math.round((top100Visited / top100Tracked) * 100),
     },
+    yearlyVisitProgress: [...yearlyVisitMap.entries()]
+      .sort((left, right) => left[0] - right[0])
+      .map(([year, count]) => ({ year, count })),
     continentCoverage: [...continentMap.entries()]
       .map(([continent, values]) => ({
         continent,

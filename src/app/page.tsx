@@ -7,8 +7,10 @@ import {
   unlockAdminAccess,
 } from "@/app/actions";
 import { CapacityAdminForm, StadiumAdminForm, VisitAdminForm } from "@/components/admin-forms";
+import { AdminExportLink } from "@/components/admin-export-link";
 import { StadiumMap } from "@/components/stadium-map";
 import { StatCard } from "@/components/stat-card";
+import { YearlyProgressCard } from "@/components/yearly-progress-card";
 import { isAdminAuthenticated } from "@/lib/auth";
 import { getDashboardData } from "@/lib/dashboard";
 import { formatDate, formatNumber } from "@/lib/utils";
@@ -49,6 +51,7 @@ function AdminCard({
 export default async function Home({ searchParams }: HomeProps) {
   const {
     stats,
+    yearlyVisitProgress,
     continentCoverage,
     stadiums,
     mapMarkers,
@@ -119,12 +122,7 @@ export default async function Home({ searchParams }: HomeProps) {
             hint="Getrackt werden nur Stadien ab 60.000 Plätzen. So viele davon warten noch auf ihren ersten Besuch."
             accent="sun"
           />
-          <StatCard
-            label="Top-50-Quote"
-            value={`${stats.top50CompletionRate}%`}
-            hint={`Aktuell ${stats.top50Visited} von ${stats.top50Tracked} der größten 50 Stadien besucht.`}
-            accent="field"
-          />
+          <YearlyProgressCard entries={yearlyVisitProgress} />
         </section>
 
         <section className="rounded-[30px] border border-slate-200/80 bg-white/90 p-5 shadow-[0_20px_50px_-40px_rgba(0,34,68,0.4)] md:p-6">
@@ -241,6 +239,8 @@ export default async function Home({ searchParams }: HomeProps) {
                     </div>
 
                     <div className="flex flex-col gap-3 sm:flex-row">
+                      <AdminExportLink />
+
                       <form action={repairWikipediaImportData}>
                         <button className="button-primary button-secondary" type="submit">
                           Fehlerhafte Wikipedia-Werte bereinigen
