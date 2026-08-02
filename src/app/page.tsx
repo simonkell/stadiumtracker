@@ -8,7 +8,7 @@ import {
 } from "@/app/actions";
 import { CapacityAdminForm, StadiumAdminForm, VisitAdminForm } from "@/components/admin-forms";
 import { AdminExportLink } from "@/components/admin-export-link";
-import { StadiumMap } from "@/components/stadium-map";
+import { StadiumMapShell } from "@/components/stadium-map-shell";
 import { StatCard } from "@/components/stat-card";
 import { YearlyProgressCard } from "@/components/yearly-progress-card";
 import { isAdminAuthenticated } from "@/lib/auth";
@@ -171,7 +171,7 @@ export default async function Home({ searchParams }: HomeProps) {
           </div>
 
           <div className="mt-5">
-            <StadiumMap markers={mapMarkers} />
+            <StadiumMapShell markers={mapMarkers} />
           </div>
         </section>
 
