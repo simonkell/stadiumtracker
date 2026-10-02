@@ -25,7 +25,22 @@ type StadiumMapProps = {
   markers: MapMarker[];
 };
 
-type MarkerFilter = "all" | "visited" | "open" | "dangerous";
+type MarkerFilter = "all" | "visited-top100" | "visited-other" | "open-top100" | "open-other" | "dangerous";
+
+function markerCategory(marker: MapMarker): MarkerFilter {
+  if (marker.isDangerous) return "dangerous";
+  if (marker.isVisited) return marker.isInTop100 ? "visited-top100" : "visited-other";
+  return marker.isInTop100 ? "open-top100" : "open-other";
+}
+
+const categories: Array<{ id: MarkerFilter; label: string; color: string }> = [
+  { id: "all", label: "Alle", color: "bg-slate-100 text-slate-900" },
+  { id: "visited-top100", label: "Besucht · Top 100", color: "bg-emerald-100 text-emerald-950" },
+  { id: "visited-other", label: "Besucht · Weitere", color: "bg-emerald-50 text-emerald-900" },
+  { id: "open-top100", label: "Offen · Top 100", color: "bg-amber-100 text-amber-950" },
+  { id: "open-other", label: "Offen · Weitere", color: "bg-amber-50 text-amber-900" },
+  { id: "dangerous", label: "Zu gefährlich", color: "bg-rose-100 text-rose-900" },
+];
 
 const WORLD_BOUNDS: [[number, number], [number, number]] = [
   [-60, -180],
@@ -41,16 +56,7 @@ export function StadiumMap({ markers }: StadiumMapProps) {
   const [filter, setFilter] = useState<MarkerFilter>("all");
 
   const filteredMarkers = useMemo(() => {
-    switch (filter) {
-      case "visited":
-        return markers.filter((marker) => marker.isVisited);
-      case "dangerous":
-        return markers.filter((marker) => marker.isDangerous);
-      case "open":
-        return markers.filter((marker) => !marker.isVisited && !marker.isDangerous);
-      default:
-        return markers;
-    }
+    return filter === "all" ? markers : markers.filter((marker) => markerCategory(marker) === filter);
   }, [filter, markers]);
 
   const mapBounds =
@@ -58,58 +64,24 @@ export function StadiumMap({ markers }: StadiumMapProps) {
       ? filteredMarkers.map((marker) => [marker.latitude, marker.longitude] as [number, number])
       : WORLD_BOUNDS;
 
-  const visitedCount = markers.filter((marker) => marker.isVisited).length;
-  const dangerousCount = markers.filter((marker) => marker.isDangerous).length;
-  const openCount = markers.filter((marker) => !marker.isVisited && !marker.isDangerous).length;
 
   return (
     <div className="overflow-hidden rounded-[28px] border border-slate-200/80 bg-slate-100">
       <div className="flex flex-col gap-4 border-b border-slate-200/80 bg-white/90 px-4 py-4 md:flex-row md:items-center md:justify-between md:px-5">
         <div className="flex flex-wrap gap-2">
-          <button
-            className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
-              filter === "all"
-                ? "bg-slate-900 text-white"
-                : "bg-slate-200 text-slate-700 hover:bg-slate-300"
-            }`}
-            onClick={() => setFilter("all")}
-            type="button"
-          >
-            Alle ({markers.length})
-          </button>
-          <button
-            className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
-              filter === "visited"
-                ? "bg-emerald-600 text-white"
-                : "bg-emerald-100 text-emerald-900 hover:bg-emerald-200"
-            }`}
-            onClick={() => setFilter("visited")}
-            type="button"
-          >
-            Besucht ({visitedCount})
-          </button>
-          <button
-            className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
-              filter === "open"
-                ? "bg-amber-400 text-slate-950"
-                : "bg-amber-100 text-amber-900 hover:bg-amber-200"
-            }`}
-            onClick={() => setFilter("open")}
-            type="button"
-          >
-            Offen ({openCount})
-          </button>
-          <button
-            className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
-              filter === "dangerous"
-                ? "bg-rose-600 text-white"
-                : "bg-rose-100 text-rose-900 hover:bg-rose-200"
-            }`}
-            onClick={() => setFilter("dangerous")}
-            type="button"
-          >
-            Zu gefährlich ({dangerousCount})
-          </button>
+          {categories.map((category) => (
+            <button
+              key={category.id}
+              className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                filter === category.id ? "bg-slate-900 text-white" : category.color
+              }`}
+              onClick={() => setFilter(category.id)}
+              aria-pressed={filter === category.id}
+              type="button"
+            >
+              {category.label} ({category.id === "all" ? markers.length : markers.filter((marker) => markerCategory(marker) === category.id).length})
+            </button>
+          ))}
         </div>
 
         <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600">
@@ -124,6 +96,14 @@ export function StadiumMap({ markers }: StadiumMapProps) {
           <div className="flex items-center gap-2">
             <span className="h-3 w-3 rounded-full bg-rose-500" />
             Zu gefährlich
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="h-4 w-4 rounded-full border-[3px] border-slate-900 bg-slate-200" />
+            Top 100
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="h-3 w-3 rounded-full border border-slate-400 bg-slate-200" />
+            Weitere Stadien
           </div>
           <div>{filteredMarkers.length} Marker sichtbar</div>
         </div>
@@ -142,10 +122,10 @@ export function StadiumMap({ markers }: StadiumMapProps) {
           <LeafletCircleMarker
             key={marker.id}
             center={[marker.latitude, marker.longitude]}
-            radius={8}
+            radius={marker.isInTop100 ? 10 : 6}
             pathOptions={{
-              color: marker.isDangerous ? "#be123c" : marker.isVisited ? "#117a43" : "#d4a017",
-              weight: 2,
+              color: marker.isInTop100 ? "#0f172a" : marker.isDangerous ? "#be123c" : marker.isVisited ? "#117a43" : "#d4a017",
+              weight: marker.isInTop100 ? 3 : 1,
               fillColor: marker.isDangerous
                 ? "#f43f5e"
                 : marker.isVisited
